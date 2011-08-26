@@ -1,0 +1,76 @@
+##########################################################
+###### Voragine Project Need Ultra Urgent Fix List #######
+##########################################################
+
+- mod rep, gm fly, waypoint commands dont work now
+- you can learn 1 spell from trainers but after that you cant learn any more spells
+- the characters appear withouth clothes in the char screen and you cant delete them
+- a lot of opcode errors in the worlserver console (said unknown opcode received, so i think this opcodes needed by core)
+  47177,34881,34882,20688,1120,47331,10312,20545,39144
+
+##########################################################
+#########  Voragine Project Need Urgent Fix List #########
+##########################################################
+
+
+- Fly and run without a mount: when you mount and relog the buff of the mount dont dissapear, so you can fly or run at 100% velocity without being in a mount.
+
+- Scale XXL or XXS: When you use a item that modify your size and you relog, you will be in your real size but with the buff of rezise, if you remove the buff you can automatically be big.
+
+- Warrior screams problem: when you are a warrior and use a shout (like shout of life) to a player with low lvl he gets the buff of the level of the warrior. Example: if im a warrior lvl 85 and i use shout of life in a player lvl 1, the player will get the buff of lvl 85 intead of the buff in lvl 1.
+
+- Guild updates: when a player lvlup in the guild status the new level aper almost 20 or 30 mins later.
+
+- guild spells: totally mess too xD. 
+
+- Guild reputation: Totally mess
+
+- Heirlom bugs: the heirlooms dont change his starts when you level up and dont give exp bonus.
+
+- guild archivements and talents: totally mess =P
+
+- guild tabard : guild tabard dont save.
+
+- Archeology: dont work at all
+
+
+Spell List:
+
+http://www.wowhead.com/spell=48495 (dont work at all xD)
+http://www.wowhead.com/spell=48020 (dont work at all xD)
+http://www.wowhead.com/spell=80553 (dont work at all xD)
+http://www.wowhead.com/spell=78785 (dont work at all xD)
+http://www.wowhead.com/spell=74625 (the food dont heal mana)
+http://www.wowhead.com/spell=86314 (dont give the buff finger of frost)
+http://www.wowhead.com/spell=80240 (dont redirect damage)
+http://www.wowhead.com/spell=17801 (it only activate with shadow bolt)
+http://www.wowhead.com/spell=91713 (dont work at all xD)
+http://www.wowhead.com/spell=18120 (dont give the buff)
+http://www.wowhead.com/spell=17877 (dont give the soul shards that offers)
+
+-- Felgard spells (and felguard damage calculation is wrong)
+http://www.wowhead.com/spell=89766 (dont work at all xD)
+http://www.wowhead.com/spell=89751 (dont work at all xD)
+http://www.wowhead.com/spell=30151 (dont work at all xD)
+
+http://www.wowhead.com/spell=85114 (dont work at all xD)
+http://www.wowhead.com/spell=12982 (dont work at all xD)
+http://www.wowhead.com/spell=83050 (dont work the cast time reduction)
+http://www.wowhead.com/spell=85105 (working only the half)
+http://www.wowhead.com/spell=89605 (dont work at all xD)
+http://www.wowhead.com/spell=71521 (dont work at all xD)
+http://www.wowhead.com/spell=85108 (dont work at all xD)
+http://www.wowhead.com/spell=603   (dont work at all xD)
+http://www.wowhead.com/spell=19028 (dont work at all xD)
+http://www.wowhead.com/spell=88447 (dont work at all xD)
+http://www.wowhead.com/spell=689 (dont give you life in exchange of the damage to enemy)
+http://www.wowhead.com/spell=74434 (dont work at all xD)
+http://www.wowhead.com/spell=13165 (dont work at all xD)
+http://www.wowhead.com/spell=85043 (dont remove the cooldown of vengeful shield)
+http://www.wowhead.com/spell=465 (dont give armor bonus)
+http://www.wowhead.com/spell=100 (dont stun)
+http://www.wowhead.com/spell=6544 (only hit 1 npc and in pvp dont hit aanyone)
+http://www.wowhead.com/spell=86662 (activate with all of the warrior skills and thats is wrong)
+http://www.wowhead.com/spell=90806 (activate with all of the warrior skills and thats is wrong)
+http://www.wowhead.com/spell=86627 (activate with all of the warrior skills and thats is wrong)
+http://www.wowhead.com/spell=46924 (this skill dont work at all in pvp xD)

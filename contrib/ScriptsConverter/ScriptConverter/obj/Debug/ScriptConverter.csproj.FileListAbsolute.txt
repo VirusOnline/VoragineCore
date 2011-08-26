@@ -1,0 +1,5 @@
+C:\projectvoragine\projekt\contrib\ScriptsConverter\ScriptConverter\bin\Debug\ScriptConverter.exe
+C:\projectvoragine\projekt\contrib\ScriptsConverter\ScriptConverter\bin\Debug\ScriptConverter.pdb
+C:\projectvoragine\projekt\contrib\ScriptsConverter\ScriptConverter\obj\Debug\ResolveAssemblyReference.cache
+C:\projectvoragine\projekt\contrib\ScriptsConverter\ScriptConverter\obj\Debug\ScriptConverter.exe
+C:\projectvoragine\projekt\contrib\ScriptsConverter\ScriptConverter\obj\Debug\ScriptConverter.pdb

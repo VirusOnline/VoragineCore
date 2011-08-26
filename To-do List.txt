@@ -1,0 +1,131 @@
+##########################################################
+##############  Voragine Project To-do List ##############
+##########################################################
+
+##########################################################
+# 
+# Description:
+# --------
+# |Member| - Position on the project
+# |---------------------------------------------------------
+# | 1- WORK1
+# | 2- WORK2
+# | 3- WORK3
+# | 4- WORK4
+# | ...
+# | ...
+# 
+# When the work(s) is(are) done then the member must 
+# change the work name as WORKNAME - IT's DONE.
+# 
+# Example:
+# 1- WORK1 - IT'S DONE.
+# 
+##########################################################
+
+##########################################################
+#
+# Positions on the project
+#
+# Core and DB Developer = 1
+# Core and Tool Dev.    = 1
+# Core Developer        = 2
+# --------------------- + -
+# Total Core Developer  = 4
+#
+#
+# DB Developer          = 5(+1 from Core list)
+# --------------------- + -
+# Total DB Developer    = 5
+#
+# Web Developer         = 2
+# --------------------- + -
+# Total DB Developer    = 2
+#
+#
+# Tool Developer        = 1(+1 from Core list)
+# --------------------- + -
+# Total Tool Developer  = 1
+#
+##########################################################
+
+---------
+|Burnham| - Core Developer
+|---------------------------------------------------------
+| 1- Merge and adapt all of the Violet Hold, Vault of Archavon (done), 
+| Utgarde Keep scripts from Trinitycore repository to our core.
+|
+| First IMPORTANT NOTE: Don't forget to add db datas.
+|
+| Some of them: creature_template, creature, creature_loot_template,
+| reference_loot_template(if exist), creature_addon, script_texts, 
+| creature_template_addon, spell_are(if exist in the dungeon).
+| If gossip_menu_id is exist in the creature_template then don't 
+| forget to look at gossip_menu, gossip_menu_option and gossip_scripts
+| too.
+|
+| Second IMPORTANT NOTE:
+| Don't forget to add creatures(Non-bosses) in the dungeons.
+|
+| 2- Make creature scripts for npcs which they are in Elwynn Forest,
+| Dun Morogh and Silverpine Forest. 
+| I suggest you to take a free  account from blizzard. Then you 
+| can create Human (for Elwynn Fr.), Dwarf (for Dun Morogh) and 
+| Bloodelf (for Silverpine Fr.). After that you can test their 
+| spells and tactics. If you have not the latest version of wow 
+| to login. Then copy your wow to another folder, update it 
+| and login.
+|
+| Don't forget to look for all creatures which they are in that maps.
+| If you have any question you can ask me(Kitiara).
+|
+
+-------
+|Abran| - DB Developer
+|---------------------------------------------------------
+| 1- Make some fixes for the quests which you can from bugtracker.
+| (Address: http://www.projectvoragine.com/bugtracker/)
+| 2- NEED A WORK HERE
+| 3- NEED A WORK HERE
+| 
+| 
+| 
+
+---------
+|Arnauec| - DB Developer
+|---------------------------------------------------------
+| 1- Make some fixes for the quests which you can from bugtracker.
+| (Address: http://www.projectvoragine.com/bugtracker/)
+| 2- Starting zones quest, sai eventai and etc, if you have any doubt only ask Icerobert.
+| 
+| 
+| 
+
+---------
+|carlosx| - Core and Tool Developer
+|---------------------------------------------------------
+| 1- Work with spells and talents and try to fix them.
+| 2- Modifications of sniffer, truice
+| 
+| Note: If you have any question then you can ask me(Kitiara).
+| 
+
+--------
+|Zeusafk| - Core Developer
+|---------------------------------------------------------
+| 1- NEED A WORK HERE
+| 
+| 
+
+
+---------
+|Kitiara| - Core and DB Developer
+|---------------------------------------------------------
+| 1- I will work on everything which is emergency.
+| 
+
+------------
+|Icerobert| - DB Developer and Project Leader
+|---------------------------------------------------------
+| 1- all the work in db, etc.
+| 
