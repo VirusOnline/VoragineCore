@@ -1,15 +1,18 @@
 = VoragineCore -- Thanks/credits file =
 
-VoragineCore is a derivation/rewrite of SkyFireEMU. Thanks to the
-community!
+VoragineCore is a derivation/rewrite of TrinityCore.
 
-Special thanks should go out to the WowwoW team. We have gained help from
-them many times in the creation of this project. Keep up the good work guys.
+First, We want to thanks to our dedicated Team: Kitiara, Icerobert, Squeezee,
+Carlosx, Arnauec, Abran.
 
-Thanks to the ScriptDev2 team (http://www.scriptdev2.com) for scripts.
+Second, we want to thank to the Silvermoon Project because his nice treatment.
 
-Thanks to the WCell team (especially Ralek) for research on realm reconnect
-sequence, item scaling stats algorithm, gameobject rotation issues.
+Third, we want to thank to TrinityCore project, because they are a good example
+to follow of a stable and well worked project for free, we want to continue his
+legacy but in wow Cataclysm.
+
+Fourth, we want to thank all the collaborators of the project, the people in
+forums and all the commiters.
 
 Thanks go out to the following people for various patches/code (listed in the
 order they were added): w12x, dythzer, XEQT, death420, balrok, TOM_RUS,
@@ -71,5 +74,6 @@ terrorbringer, antihrists, Havenard, scarymovie87, D3VIL, FaTe753, PrinceCreed,
 spgm, Dakeyras, sombre88, 19Maxx83, moriquendu, Ille, breakerfly,
 zthoreen, clement.roussel, p.alexej, Ceris, Nayre, Kiper, announce, thmarth,
 Ner'zhul, DarkXuan, Cearey, n0n4m3, fabian, scruffy, AriDEV, Chameleon, TheHacker66, 
-Dvlpr, Hammerstorm, XEQT, Cristal, Cerey, Keany, carlosx, Burnham, Abran, Arnauec, Azumy,
-deathrobert, extasy, holyfot, leben, Kitiara . And anyone else not on this list. Thank You.
+Dvlpr, Hammerstorm, XEQT, Cristal, Cerey, Keany, Burnham, Misimouse, Aridev, Boomy,
+Ahlmo, Saifii.
+And anyone else not on this list. Thank You.

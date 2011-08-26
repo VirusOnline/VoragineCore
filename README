@@ -1,7 +1,12 @@
 = VoragineCore -- General information =
 
-Copyright (C) TrinityCore (http://www.trinitycore.org)
 Copyright (C) VoragineCore (http://www.projectvoragine.com)
+Copyright (C) TrinityCore (http://www.trinitycore.org)
+Copyright (C) Arcemu (http://www.arcemu.org)
+Copyright (C) Mangos (http://www.getmangos.com)
+Copyright (C) Skyfire (http://www.projectskyfire.org)
+Copyright (C) Trillium (http://forums.arkania.net)
+
 
   Voragine Core is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -28,7 +33,7 @@ Copyright (C) VoragineCore (http://www.projectvoragine.com)
   so, delete this exception statement from your version.
 
 VoragineCore is a World of Warcraft game server application. It is derived
-from MaNGOS, the Massive Network Game Object Server, and is based on the
+from TrinityCore, the Massive Network Game Object Server, and is based on the
 code of that project.
 
 For further information on the VoragineCore project, please visit our
@@ -37,8 +42,6 @@ project website at http://www.projectvoragine.com.
 API documentation can be obtained by running the "make doc" command inside
 the doc directory.
 
-SQL files to create the database can be found in the sql directory. Files
-to update your database from an older revision/version can be found in the
-sql/updates directory.
+SQL files to create the database can be found in the DB Repo.
 
 See the docs/UnixInstall.txt file for installation instructions on Linux.
