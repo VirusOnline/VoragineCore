@@ -1,0 +1,1 @@
+replace into playercreateinfo_spell(`race`,`class`,`spell`,`note`) values (5,4,79327,'Sinister Strike Enabler');
