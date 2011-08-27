@@ -7848,7 +7848,7 @@ void Spell::EffectPlayerNotification(SpellEffectEntry const* /*effect*/)
 
     switch(m_spellInfo->Id)
     {
-        case 58730: // Restricted Flight Area
+        case 91604: // Restricted Flight Area
         case 58600: // Restricted Flight Area
             unitTarget->ToPlayer()->GetSession()->SendNotification(LANG_ZONE_NOFLYZONE);
             break;

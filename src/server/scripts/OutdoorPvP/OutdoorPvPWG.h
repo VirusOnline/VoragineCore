@@ -46,7 +46,7 @@ enum OutdoorPvPWGSpell
     SPELL_TENACITY_VEHICLE                       = 59911,
     SPELL_TOWER_CONTROL                          = 62064,
     SPELL_SPIRITUAL_IMMUNITY                     = 58729,
-    SPELL_RANK_UP                                 = 47292,
+    SPELL_RANK_UP                                = 47292,
 
     // Reward spells
     SPELL_VICTORY_REWARD                         = 56902,
@@ -170,8 +170,8 @@ enum OutdoorPvPWGCreEntry
     CRE_ENG_H                                    = 30400,
     CRE_SPI_A                                    = 31842,
     CRE_SPI_H                                    = 31841,
-    CRE_GUARD_H                                     = 30739,
-    CRE_GUARD_A                                     = 30740,
+    CRE_GUARD_H                                  = 30739,
+    CRE_GUARD_A                                  = 30740,
 };
 
 const TeamPair OutdoorPvPWGCreEntryPair[] =

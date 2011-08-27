@@ -506,11 +506,9 @@ inline bool IsAutoRepeatRangedSpell(SpellEntry const* spellInfo)
 
 inline bool IsRangedWeaponSpell(SpellEntry const* spellInfo)
 {
-    SpellClassOptionsEntry const* flag = spellInfo->GetSpellClassOptions();
-    SpellEquippedItemsEntry const* items = spellInfo->GetSpellEquippedItems();
     //spell->DmgClass == SPELL_DAMAGE_CLASS_RANGED should be checked outside
-    return (spellInfo->GetSpellFamilyName() == SPELLFAMILY_HUNTER && !(flag->SpellFamilyFlags[1] & 0x10000000)) // for 53352, cannot find better way
-        || (items->EquippedItemSubClassMask & ITEM_SUBCLASS_MASK_WEAPON_RANGED);
+    return (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && !(spellInfo->SpellFamilyFlags[1] & 0x10000000)) // for 53352, cannot find better way
+        || (spellInfo->EquippedItemSubClassMask & ITEM_SUBCLASS_MASK_WEAPON_RANGED);
 }
 
 SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form);
