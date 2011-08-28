@@ -1155,39 +1155,39 @@ void AuraEffect::ApplySpellMod(Unit *target, bool apply)
             uint64 guid = target->GetGUID();
             Unit::AuraApplicationMap & auras = target->GetAppliedAuras();
             if (!auras.empty())
-            for (Unit::AuraApplicationMap::iterator iter = auras.begin(); iter != auras.end(); ++iter)
-            {
-                Aura *aura = iter->second->GetBase();
-                // only passive auras-active auras should have amount set on spellcast and not be affected
-                if (aura)
+                for (Unit::AuraApplicationMap::iterator iter = auras.begin(); iter != auras.end(); ++iter)
                 {
-                    if ((aura->IsPassive() || aura->GetSpellProto()->AttributesEx2 & SPELL_ATTR2_ALWAYS_APPLY_MODIFIERS) && aura->GetCasterGUID() == guid && sSpellMgr->IsAffectedByMod(aura->GetSpellProto(), m_spellmod))
+                    Aura *aura = iter->second->GetBase();
+                    // only passive auras-active auras should have amount set on spellcast and not be affected
+                    if (aura)
                     {
-                        if (GetMiscValue() == SPELLMOD_ALL_EFFECTS)
+                        if ((aura->IsPassive() || aura->GetSpellProto()->AttributesEx2 & SPELL_ATTR2_ALWAYS_APPLY_MODIFIERS) && aura->GetCasterGUID() == guid && sSpellMgr->IsAffectedByMod(aura->GetSpellProto(), m_spellmod))
                         {
-                            for (uint8 i = 0; i<MAX_SPELL_EFFECTS; ++i)
+                            if (GetMiscValue() == SPELLMOD_ALL_EFFECTS)
                             {
-                                if (AuraEffect * aurEff = aura->GetEffect(i))
+                                for (uint8 i = 0; i<MAX_SPELL_EFFECTS; ++i)
+                                {
+                                    if (AuraEffect * aurEff = aura->GetEffect(i))
+                                        aurEff->RecalculateAmount();
+                                }
+                            }
+                            else if (GetMiscValue() == SPELLMOD_EFFECT1)
+                            {
+                               if (AuraEffect * aurEff = aura->GetEffect(0))
+                                    aurEff->RecalculateAmount();
+                            }
+                            else if (GetMiscValue() == SPELLMOD_EFFECT2)
+                            {
+                               if (AuraEffect * aurEff = aura->GetEffect(1))
+                                    aurEff->RecalculateAmount();
+                            }
+                            else
+                            {
+                               if (AuraEffect * aurEff = aura->GetEffect(2))
                                     aurEff->RecalculateAmount();
                             }
                         }
-                        else if (GetMiscValue() == SPELLMOD_EFFECT1)
-                        {
-                           if (AuraEffect * aurEff = aura->GetEffect(0))
-                                aurEff->RecalculateAmount();
-                        }
-                        else if (GetMiscValue() == SPELLMOD_EFFECT2)
-                        {
-                           if (AuraEffect * aurEff = aura->GetEffect(1))
-                                aurEff->RecalculateAmount();
-                        }
-                        else
-                        {
-                           if (AuraEffect * aurEff = aura->GetEffect(2))
-                                aurEff->RecalculateAmount();
-                        }
                     }
-                }
             }
         }
         default:
