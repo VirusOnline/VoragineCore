@@ -213,7 +213,9 @@ void Creature::RemoveFromWorld()
 void Creature::DisappearAndDie()
 {
     DestroyForNearbyPlayers();
-    //SetVisibility(VISIBILITY_OFF);    //ObjectAccessor::UpdateObjectVisibility(this);    if (isAlive())
+    //SetVisibility(VISIBILITY_OFF);
+    //ObjectAccessor::UpdateObjectVisibility(this);
+    if (isAlive())
         setDeathState(JUST_DIED);
     RemoveCorpse(false);
 }
@@ -315,7 +317,9 @@ bool Creature::InitEntry(uint32 Entry, uint32 /*team*/, const CreatureData *data
 
     displayID = minfo->modelid;                            // it can be different (for another gender)
 
-    SetDisplayId(displayID);    SetNativeDisplayId(displayID);    SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
+    SetDisplayId(displayID);
+    SetNativeDisplayId(displayID);
+    SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
 
     // Load creature equipment
     if (!data || data->equipmentId == 0)                    // use default from the template
@@ -440,7 +444,9 @@ void Creature::Update(uint32 diff)
     {
         TriggerJustRespawned = false;
         AI()->JustRespawned();
-        if (m_vehicleKit)            m_vehicleKit->Reset();    }
+        if (m_vehicleKit)
+            m_vehicleKit->Reset();
+    }
 
     switch(m_deathState)
     {
@@ -480,7 +486,10 @@ void Creature::Update(uint32 diff)
         case CORPSE:
         {
             m_Events.Update(diff);
-            _UpdateSpells(diff);            // deathstate changed on spells update, prevent problems            if (m_isDeadByDefault) // instead of (m_deathState != CORPSE)                break;
+            _UpdateSpells(diff);            // deathstate changed on spells update, prevent problems
+            if (m_isDeadByDefault)
+                // instead of (m_deathState != CORPSE)
+                break;
 
             if (m_groupLootTimer && lootingGroupLowGUID)
             {
@@ -845,8 +854,8 @@ bool Creature::isCanTrainingOf(Player* pPlayer, bool msg) const
                     switch(GetCreatureInfo()->trainer_class)
                     {
                         case CLASS_DRUID:  pPlayer->PlayerTalkClass->SendGossipMenu(4913, GetGUID()); break;
-                        case CLASS_HUNTER: pPlayer->PlayerTalkClass->SendGossipMenu(10090, GetGUID()); break;
-                        case CLASS_MAGE:   pPlayer->PlayerTalkClass->SendGossipMenu(328, GetGUID()); break;
+                        case CLASS_HUNTER: pPlayer->PlayerTalkClass->SendGossipMenu(10090, GetGUID());break;
+                        case CLASS_MAGE:   pPlayer->PlayerTalkClass->SendGossipMenu(328, GetGUID());  break;
                         case CLASS_PALADIN:pPlayer->PlayerTalkClass->SendGossipMenu(1635, GetGUID()); break;
                         case CLASS_PRIEST: pPlayer->PlayerTalkClass->SendGossipMenu(4436, GetGUID()); break;
                         case CLASS_ROGUE:  pPlayer->PlayerTalkClass->SendGossipMenu(4797, GetGUID()); break;
@@ -881,7 +890,7 @@ bool Creature::isCanTrainingOf(Player* pPlayer, bool msg) const
                         case RACE_ORC:          pPlayer->PlayerTalkClass->SendGossipMenu(5863, GetGUID()); break;
                         case RACE_TAUREN:       pPlayer->PlayerTalkClass->SendGossipMenu(5864, GetGUID()); break;
                         case RACE_TROLL:        pPlayer->PlayerTalkClass->SendGossipMenu(5816, GetGUID()); break;
-                        case RACE_UNDEAD_PLAYER:pPlayer->PlayerTalkClass->SendGossipMenu(624, GetGUID()); break;
+                        case RACE_UNDEAD_PLAYER:pPlayer->PlayerTalkClass->SendGossipMenu(624, GetGUID());  break;
                         case RACE_BLOODELF:     pPlayer->PlayerTalkClass->SendGossipMenu(5862, GetGUID()); break;
                         case RACE_DRAENEI:      pPlayer->PlayerTalkClass->SendGossipMenu(5864, GetGUID()); break;
                     }
@@ -910,7 +919,40 @@ bool Creature::isCanInteractWithBattleMaster(Player* pPlayer, bool msg) const
 {
     if (!isBattleMaster())
         return false;
-    BattlegroundTypeId bgTypeId = sBattlegroundMgr->GetBattleMasterBG(GetEntry());    if (!msg)        return pPlayer->GetBGAccessByLevel(bgTypeId);    if (!pPlayer->GetBGAccessByLevel(bgTypeId))    {        pPlayer->PlayerTalkClass->ClearMenus();        switch(bgTypeId)        {            case BATTLEGROUND_AV:  pPlayer->PlayerTalkClass->SendGossipMenu(7616, GetGUID()); break;            case BATTLEGROUND_WS:  pPlayer->PlayerTalkClass->SendGossipMenu(7599, GetGUID()); break;            case BATTLEGROUND_AB:  pPlayer->PlayerTalkClass->SendGossipMenu(7642, GetGUID()); break;            case BATTLEGROUND_EY:            case BATTLEGROUND_NA:            case BATTLEGROUND_BE:            case BATTLEGROUND_AA:            case BATTLEGROUND_RL:            case BATTLEGROUND_SA:            case BATTLEGROUND_DS:            case BATTLEGROUND_RV: pPlayer->PlayerTalkClass->SendGossipMenu(10024, GetGUID()); break;            default: break;        }        return false;    }    return true;
+    BattlegroundTypeId bgTypeId = sBattlegroundMgr->GetBattleMasterBG(GetEntry());
+    if (!msg)
+        return
+        pPlayer->GetBGAccessByLevel(bgTypeId);
+    if (!pPlayer->GetBGAccessByLevel(bgTypeId))
+    {
+        pPlayer->PlayerTalkClass->ClearMenus();
+        switch(bgTypeId)
+        {
+        case BATTLEGROUND_AV:
+            pPlayer->PlayerTalkClass->SendGossipMenu(7616, GetGUID());
+            break;
+        case BATTLEGROUND_WS:
+            pPlayer->PlayerTalkClass->SendGossipMenu(7599, GetGUID());
+            break;
+        case BATTLEGROUND_AB:
+            pPlayer->PlayerTalkClass->SendGossipMenu(7642, GetGUID());
+            break;
+        case BATTLEGROUND_EY:
+        case BATTLEGROUND_NA:
+        case BATTLEGROUND_BE:
+        case BATTLEGROUND_AA:
+        case BATTLEGROUND_RL:
+        case BATTLEGROUND_SA:
+        case BATTLEGROUND_DS:
+        case BATTLEGROUND_RV:
+            pPlayer->PlayerTalkClass->SendGossipMenu(10024, GetGUID());
+            break;
+        default:
+            break;
+        }
+        return false;
+    }
+    return true;
 }
 
 bool Creature::isCanTrainingAndResetTalentsOf(Player* pPlayer) const
@@ -1825,17 +1867,18 @@ Unit* Creature::SelectNearestTargetInAttackDistance(float dist) const
 
     if (dist > MAX_VISIBILITY_DISTANCE)
     {
-        sLog->outError("Creature (GUID: %u Entry: %u) SelectNearestTargetInAttackDistance called with dist > MAX_VISIBILITY_DISTANCE. Distance set to ATTACK_DISTANCE.", GetGUIDLow(), GetEntry());        dist = ATTACK_DISTANCE;    }
-    {
-        Voragine::NearestHostileUnitInAttackDistanceCheck u_check(this, dist);
-        Voragine::UnitLastSearcher<Voragine::NearestHostileUnitInAttackDistanceCheck> searcher(this, target, u_check);
-
-        TypeContainerVisitor<Voragine::UnitLastSearcher<Voragine::NearestHostileUnitInAttackDistanceCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
-        TypeContainerVisitor<Voragine::UnitLastSearcher<Voragine::NearestHostileUnitInAttackDistanceCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
-
-        cell.Visit(p, world_unit_searcher, *GetMap(), *this, ATTACK_DISTANCE > dist ? ATTACK_DISTANCE : dist);
-        cell.Visit(p, grid_unit_searcher, *GetMap(), *this, ATTACK_DISTANCE > dist ? ATTACK_DISTANCE : dist);
+        sLog->outError("Creature (GUID: %u Entry: %u) SelectNearestTargetInAttackDistance called with dist > MAX_VISIBILITY_DISTANCE. Distance set to ATTACK_DISTANCE.", GetGUIDLow(), GetEntry());
+        dist = ATTACK_DISTANCE;
     }
+
+    Voragine::NearestHostileUnitInAttackDistanceCheck u_check(this, dist);
+    Voragine::UnitLastSearcher<Voragine::NearestHostileUnitInAttackDistanceCheck> searcher(this, target, u_check);
+
+    TypeContainerVisitor<Voragine::UnitLastSearcher<Voragine::NearestHostileUnitInAttackDistanceCheck>, WorldTypeMapContainer > world_unit_searcher(searcher);
+    TypeContainerVisitor<Voragine::UnitLastSearcher<Voragine::NearestHostileUnitInAttackDistanceCheck>, GridTypeMapContainer >  grid_unit_searcher(searcher);
+
+    cell.Visit(p, world_unit_searcher, *GetMap(), *this, ATTACK_DISTANCE > dist ? ATTACK_DISTANCE : dist);
+    cell.Visit(p, grid_unit_searcher, *GetMap(), *this, ATTACK_DISTANCE > dist ? ATTACK_DISTANCE : dist);
 
     return target;
 }

@@ -159,7 +159,7 @@ void AuraApplication::_HandleEffect(uint8 effIndex, bool apply)
     ASSERT(aurEff);
     ASSERT(HasEffect(effIndex) == (!apply));
     ASSERT((1<<effIndex) & m_effectsToApply);
-    sLog->outDebug("AuraApplication::_HandleEffect: %u, apply: %u: amount: %u", aurEff->GetAuraType(), apply, aurEff->GetAmount());
+    sLog->outDebug("AuraApplication::_HandleEffect: %u, apply: %u: amount: %i", aurEff->GetAuraType(), apply, aurEff->GetAmount());
 
     if (apply)
     {
@@ -273,8 +273,8 @@ Aura* Aura::TryRefreshStackOrCreate(SpellEntry const* spellproto, uint8 tryEffMa
             *refresh = true;
         return foundAura;
     }
-    else
-        return Create(spellproto, effMask, owner, caster, baseAmount, castItem, casterGUID);
+
+    return Create(spellproto, effMask, owner, caster, baseAmount, castItem, casterGUID);
 }
 
 Aura* Aura::TryCreate(SpellEntry const* spellproto, uint8 tryEffMask, WorldObject* owner, Unit* caster, int32* baseAmount /*= NULL*/, Item* castItem /*= NULL*/, uint64 casterGUID /*= 0*/)

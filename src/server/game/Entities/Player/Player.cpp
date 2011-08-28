@@ -5740,7 +5740,10 @@ void Player::UpdateLocalChannels(uint32 newZone)
                     else
                         currentNameExt = current_zone_name.c_str();
 
-                    snprintf(new_channel_name_buf, 100, (const char*)channel->pattern[m_session->GetSessionDbcLocale()], currentNameExt);
+                    std::stringstream ss;
+                    ss << channel->pattern[m_session->GetSessionDbcLocale()];
+                    std::string name = s.str();
+                    snprintf(new_channel_name_buf, 100, name.c_str(), currentNameExt);
 
                     joinChannel = cMgr->GetJoinChannel(new_channel_name_buf, channel->ChannelID);
                     if (usedChannel)
@@ -5755,12 +5758,12 @@ void Player::UpdateLocalChannels(uint32 newZone)
                     }
                 }
                 else
-				{
-					std::stringstream s;
-					s << channel->pattern[m_session->GetSessionDbcLocale()];
-					std::string name = s.str();
+                {
+                    std::stringstream s;
+                    s << channel->pattern[m_session->GetSessionDbcLocale()];
+                    std::string name = s.str();
                     joinChannel = cMgr->GetJoinChannel(name, channel->ChannelID);
-				}
+                }
             }
             else
                 removeChannel = usedChannel;

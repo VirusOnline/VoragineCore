@@ -125,7 +125,7 @@ void WorldSession::SendNameQueryOpcodeFromDBCallBack(QueryResult result)
     SendPacket(&data);
 }
 
-void WorldSession::HandleNameQueryOpcode(WorldPacket & recv_data)
+void WorldSession::HandleNameQueryOpcode(WorldPacket& recv_data)
 {
     uint64 guid;
 
@@ -152,7 +152,7 @@ void WorldSession::SendQueryTimeResponse()
     SendPacket(&data);
 }
 
-/// Only _static_ data send in this packet !!!
+/// Only _static_ data is sent in this packet !!!
 void WorldSession::HandleCreatureQueryOpcode(WorldPacket & recv_data)
 {
     uint32 entry;
@@ -177,33 +177,33 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket & recv_data)
                 sObjectMgr->GetLocaleString(cl->SubName, loc_idx, SubName);
             }
         }
-        sLog->outDetail("WORLD: CMSG_CREATURE_QUERY '%s' - Entry: %u.", ci->Name, entry);
+        sLog->outDetail("WORLD: CMSG_CREATURE_QUERY '%s' - Entry: %u.", ci->Name.c_str(), entry);
                                                             // guess size
         WorldPacket data(SMSG_CREATURE_QUERY_RESPONSE, 100);
         data << uint32(entry);                              // creature entry
         data << Name;
         data << uint8(0) << uint8(0) << uint8(0);           // name2, name3, name4, always empty
-        data << uint8(0) << uint8(0) << uint8(0) << uint8(0);   // 4 unk strings 4.2.0
+        data << uint8(0) << uint8(0) << uint8(0) << uint8(0); // Unk 1-4
         data << SubName;
         data << ci->IconName;                               // "Directions" for guard, string for Icons 2.3.0
         data << uint32(ci->type_flags);                     // flags
+        data << uint32(0);                                  // Unknown, 4.2.0
         data << uint32(ci->type);                           // CreatureType.dbc
         data << uint32(ci->family);                         // CreatureFamily.dbc
-        data << uint32(0);                                  // unk
         data << uint32(ci->rank);                           // Creature Rank (elite, boss, etc)
-        data << uint32(ci->KillCredit[0]);                  // kill credit
-        data << uint32(ci->KillCredit[1]);                  // kill credit
+        data << uint32(ci->KillCredit[0]);                  // Kill Credit
+        data << uint32(ci->KillCredit[1]);                  // Kill Credit
         data << uint32(ci->Modelid1);                       // Modelid1
         data << uint32(ci->Modelid2);                       // Modelid2
         data << uint32(ci->Modelid3);                       // Modelid3
         data << uint32(ci->Modelid4);                       // Modelid4
-        data << float(0);                                   // dmg/hp modifier
-        data << float(0);                                   // dmg/mana modifier
+        data << float(ci->ModHealth);                       // dmg/hp modifier
+        data << float(ci->ModMana);                         // dmg/mana modifier
         data << uint8(ci->RacialLeader);
         for (uint32 i = 0; i < MAX_CREATURE_QUEST_ITEMS; ++i)
             data << uint32(ci->questItems[i]);              // itemId[6], quest drop
         data << uint32(ci->movementId);                     // CreatureMovementInfo.dbc
-        data << uint32(0);                                  // client will not allow interaction if this value is not in line with its stored exp
+        data << uint32(ci->expansion);                      // Expansion
         SendPacket(&data);
         sLog->outDebug("WORLD: Sent SMSG_CREATURE_QUERY_RESPONSE");
     }
@@ -218,7 +218,6 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket & recv_data)
     }
 }
 
-/// Only _static_ data send in this packet !!!
 void WorldSession::HandleGameObjectQueryOpcode(WorldPacket & recv_data)
 {
     uint32 entryID;
@@ -246,7 +245,7 @@ void WorldSession::HandleGameObjectQueryOpcode(WorldPacket & recv_data)
                 sObjectMgr->GetLocaleString(gl->CastBarCaption, loc_idx, CastBarCaption);
             }
         }
-        sLog->outDetail("WORLD: CMSG_GAMEOBJECT_QUERY '%s' - Entry: %u. ", info->name, entryID);
+        sLog->outDetail("WORLD: CMSG_GAMEOBJECT_QUERY '%s' - Entry: %u. ", info->name.c_str(), entryID);
         WorldPacket data (SMSG_GAMEOBJECT_QUERY_RESPONSE, 150);
         data << uint32(entryID);
         data << uint32(info->type);
@@ -256,11 +255,11 @@ void WorldSession::HandleGameObjectQueryOpcode(WorldPacket & recv_data)
         data << IconName;                                   // 2.0.3, string. Icon name to use instead of default icon for go's (ex: "Attack" makes sword)
         data << CastBarCaption;                             // 2.0.3, string. Text will appear in Cast Bar when using GO (ex: "Collecting")
         data << info->unk1;                                 // 2.0.3, string
-        data.append(info->raw.data, 32);
+        data.append(info->raw.data, MAX_GAMEOBJECT_DATA);
         data << float(info->size);                          // go size
         for (uint32 i = 0; i < MAX_GAMEOBJECT_QUEST_ITEMS; ++i)
             data << uint32(info->questItems[i]);            // itemId[6], quest drop
-        data << uint32(0);                                  // go expansion field - TODO: add to database
+        data << uint32(info->unk2);                         // Found in 4.2.0, date from gameobjectcache.wdb
         SendPacket(&data);
         sLog->outDebug("WORLD: Sent SMSG_GAMEOBJECT_QUERY_RESPONSE");
     }
@@ -335,7 +334,7 @@ void WorldSession::HandleNpcTextQueryOpcode(WorldPacket & recv_data)
     sLog->outDetail("WORLD: CMSG_NPC_TEXT_QUERY ID '%u'", textID);
 
     recv_data >> guid;
-    GetPlayer()->SetUInt64Value(UNIT_FIELD_TARGET, guid);
+    GetPlayer()->SetSelection(guid);
 
     GossipText const* pGossip = sObjectMgr->GetGossipText(textID);
 
@@ -409,6 +408,7 @@ void WorldSession::HandleNpcTextQueryOpcode(WorldPacket & recv_data)
     sLog->outDebug("WORLD: Sent SMSG_NPC_TEXT_UPDATE");
 }
 
+/// Only _static_ data is sent in this packet !!!
 void WorldSession::HandlePageTextQueryOpcode(WorldPacket & recv_data)
 {
     sLog->outDetail("WORLD: Received CMSG_PAGE_TEXT_QUERY");

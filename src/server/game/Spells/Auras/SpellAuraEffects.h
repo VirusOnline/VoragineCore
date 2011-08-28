@@ -35,6 +35,7 @@ typedef void(AuraEffect::*pAuraEffectHandler)(AuraApplication const * aurApp, ui
 class AuraEffect
 {
     friend void Aura::_InitEffects(uint8 effMask, Unit * caster, int32 *baseAmount);
+    friend Aura * Unit::_TryStackingOrRefreshingExistingAura(SpellEntry const* newAura, uint8 effMask, Unit* caster, int32* baseAmount, Item* castItem, uint64 casterGUID);
     friend Aura::~Aura();
     private:
         ~AuraEffect();
@@ -98,12 +99,12 @@ class AuraEffect
 
         // add/remove SPELL_AURA_MOD_SHAPESHIFT (36) linked auras
         void HandleShapeshiftBoosts(Unit * target, bool apply) const;
-        int32 const m_baseAmount;
     private:
         Aura * const m_base;
 
         SpellEntry const * const m_spellProto;
         uint8 const m_effIndex;
+        int32 const m_baseAmount;
 
         int32 m_amount;
         bool m_canBeRecalculated;
@@ -318,6 +319,12 @@ namespace Voragine
                     (spellProtoB->SpellFamilyName == SPELLFAMILY_WARLOCK))
                     if (spellProtoB->Category == 56)
                         return false;
+
+                // Sacred Shield
+                if (spellProtoA->Id == 58597)
+                    return true;
+                if (spellProtoB->Id == 58597)
+                    return false;
 
                 // Fel Blossom
                 if (spellProtoA->Id == 28527)

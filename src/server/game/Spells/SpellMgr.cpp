@@ -1361,7 +1361,7 @@ bool SpellMgr::IsAffectedByMod(SpellEntry const *spellInfo, SpellModifier *mod) 
         return false;
 
     // true
-    if (mod->mask  & spellInfo->GetSpellClassOptions()->SpellFamilyFlags)
+    if (mod->mask  & spellInfo->GetSpellFamilyFlags())
         return true;
 
     return false;
