@@ -929,6 +929,7 @@ class WorldSession
         void HandleUpdateProjectilePosition(WorldPacket& recvPacket);
 
     private:
+        void InitializeQueryCallbackParameters();
         void ProcessQueryCallbacks();
 
         ACE_Future_Set<QueryResult> m_nameQueryCallbacks;

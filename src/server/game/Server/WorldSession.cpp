@@ -106,6 +106,8 @@ m_latency(0), m_TutorialsChanged(false), recruiterId(recruiter)
         ResetTimeOutTime();
         LoginDatabase.PExecute("UPDATE account SET online = '%u' WHERE id = %u;", realmID, GetAccountId());
     }
+
+    InitializeQueryCallbackParameters();
 }
 
 /// WorldSession destructor
@@ -928,6 +930,14 @@ void WorldSession::SetPlayer(Player *plr)
         m_GUIDLow = _player->GetGUIDLow();
 }
 
+void WorldSession::InitializeQueryCallbackParameters()
+{
+    // Callback parameters that have pointers in them should be properly
+    // initialized to NULL here.
+    m_charCreateCallback.SetParam(NULL);
+}
+
+
 void WorldSession::ProcessQueryCallbacks()
 {
     QueryResult result;
@@ -954,6 +964,14 @@ void WorldSession::ProcessQueryCallbacks()
         m_charEnumCallback.get(result);
         HandleCharEnum(result);
         m_charEnumCallback.cancel();
+    }
+
+    if (m_charCreateCallback.IsReady())
+    {
+        PreparedQueryResult pResult;
+        m_charCreateCallback.GetResult(pResult);
+        HandleCharCreateCallback(pResult, m_charCreateCallback.GetParam());
+        // Don't call FreeResult() here, the callback handler will do that depending on the events in the callback chain
     }
 
     //! HandlePlayerLoginOpcode
