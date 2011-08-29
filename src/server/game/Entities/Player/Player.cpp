@@ -5742,7 +5742,7 @@ void Player::UpdateLocalChannels(uint32 newZone)
 
                     std::stringstream ss;
                     ss << channel->pattern[m_session->GetSessionDbcLocale()];
-                    std::string name = s.str();
+                    std::string name = ss.str();
                     snprintf(new_channel_name_buf, 100, name.c_str(), currentNameExt);
 
                     joinChannel = cMgr->GetJoinChannel(new_channel_name_buf, channel->ChannelID);
@@ -20404,6 +20404,7 @@ bool Player::IsAffectedBySpellmod(SpellEntry const *spellInfo, SpellModifier *mo
 void Player::AddSpellMod(SpellModifier* mod, bool apply)
 {
     sLog->outDebug("Player::AddSpellMod %d", mod->spellId);
+    bool isFlat = mod->type == SPELLMOD_FLAT;
     Opcodes Opcode = (mod->type == SPELLMOD_FLAT) ? SMSG_SET_FLAT_SPELL_MODIFIER : SMSG_SET_PCT_SPELL_MODIFIER;
 
     WorldPacket data(Opcode);
@@ -20431,7 +20432,10 @@ void Player::AddSpellMod(SpellModifier* mod, bool apply)
             }
             val += apply ? mod->value : -(mod->value);
             data << uint8(eff);
-            data << int32(val);
+            if(isFlat)
+                data << int32(val);
+            else
+                data << float(val);
             count2++;
         }
     }
