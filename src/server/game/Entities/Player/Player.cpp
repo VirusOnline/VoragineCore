@@ -18972,7 +18972,7 @@ void Player::SaveToDB()
         //45               46      47      48      49      50      51      52      53      54      55      56      57      58
         "watchedFaction, drunk, health, power1, power2, power3, power4, power5, power6, power7, power8, power9, power10, latency, "
         //59            60            61            62            63         64            65               66            67            68
-        "speccount, activespec, exploredZones, equipmentCache, ammoId, knownTitles, achievementPoints, actionBars, currentPetSlot petSlotUsed) VALUES ("
+        "speccount, activespec, exploredZones, equipmentCache, ammoId, knownTitles, achievementPoints, actionBars, currentPetSlot, petSlotUsed) VALUES ("
         << GetGUIDLow() << ", " // 1
         << GetSession()->GetAccountId() << ", '" // 2
         << sql_name << "', " // 3
@@ -19079,7 +19079,7 @@ void Player::SaveToDB()
     for (uint32 i = 0; i < EQUIPMENT_SLOT_END * 2; ++i)
         ss << GetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + i) << " "; // 62
 
-    ss << "', '";
+    ss << "', ";
 
     ss << 0/*GetUInt32Value(PLAYER_AMMO_ID)*/ << " "; // 63
 
