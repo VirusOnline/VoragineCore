@@ -180,6 +180,9 @@ set(scripts_STAT_SRCS
   Raids/Wyrmrest_Temple/Ruby_Sanctum/boss_zarithrian.cpp
   Raids/Wyrmrest_Temple/Ruby_Sanctum/instance_ruby_sanctum.cpp
   Raids/Wyrmrest_Temple/Ruby_Sanctum/ruby_sanctum.h
+  Raids/BaradinHold/instance_baradin_hold.cpp
+  Raids/BaradinHold/baradin_hold.h
+  Raids/BaradinHold/boss_argaloth.cpp
 )
 
 message("  -> Prepared: Raids")
