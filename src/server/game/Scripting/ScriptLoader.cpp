@@ -594,6 +594,8 @@ void AddSC_zangarmarsh();
 void AddSC_the_stonecore();                     //Cata:TheStonecore
 void AddSC_instance_the_stonecore();
 
+void AddSC_instance_baradin_hold();             //Baradin Hold
+void AddSC_boss_argaloth();
 
 // battlegrounds
 
@@ -1219,6 +1221,8 @@ void AddNorthrendScripts()
     // Cataclysm Scripts
     AddSC_the_stonecore();
     AddSC_instance_the_stonecore();
+    AddSC_instance_baradin_hold();
+    AddSC_boss_argaloth();
 
 #endif
 }
