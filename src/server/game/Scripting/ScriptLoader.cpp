@@ -597,6 +597,12 @@ void AddSC_instance_the_stonecore();
 void AddSC_instance_baradin_hold();             //Baradin Hold
 void AddSC_boss_argaloth();
 
+void AddSC_instance_throne_of_the_tides();
+void AddSC_boss_commander_ulthok();
+void AddSC_boss_lady_nazjar();
+void AddSC_boss_erunak_stonespeaker();
+void AddSC_neptulon();
+
 // battlegrounds
 
 // outdoor pvp
@@ -1223,6 +1229,11 @@ void AddNorthrendScripts()
     AddSC_instance_the_stonecore();
     AddSC_instance_baradin_hold();
     AddSC_boss_argaloth();
+    AddSC_instance_throne_of_the_tides();
+    AddSC_boss_commander_ulthok();
+    AddSC_boss_lady_nazjar();
+    AddSC_boss_erunak_stonespeaker();
+    AddSC_neptulon();
 
 #endif
 }
