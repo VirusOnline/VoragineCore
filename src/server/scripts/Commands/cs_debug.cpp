@@ -873,7 +873,7 @@ class debug_commandscript : public CommandScript
                 return false;
 
             uint32 PhaseShift = atoi(args);
-            handler->GetSession()->SendSetPhaseShift(PhaseShift);
+            handler->GetSession()->SendSetPhaseShift(PhaseShift, NULL, true);
             return true;
         }
 

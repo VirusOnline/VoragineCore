@@ -118,13 +118,15 @@ void PlayerSocial::SetFriendNote(uint32 friend_guid, std::string note)
     m_playerSocialMap[friend_guid].Note = note;
 }
 
-void PlayerSocial::SendSocialList(Player* plr)
+void PlayerSocial::SendSocialList(Player* player, uint32 mask)
 {
-    if (!plr)
+    if (!player)
         return;
 
     uint32 size = m_playerSocialMap.size();
-
+    uint32 count = 0;
+/*
+    // OLD
     WorldPacket data(SMSG_CONTACT_LIST, (4+4+size*25));     // just can guess size
     data << uint32(7);                                      // unk flag (0x1, 0x2, 0x4), 0x7 if it include ignore list
     data << uint32(size);                                   // friends count
@@ -149,22 +151,19 @@ void PlayerSocial::SendSocialList(Player* plr)
     }
 
     plr->GetSession()->SendPacket(&data);
-    sLog->outDebug("WORLD: Sent SMSG_CONTACT_LIST");
-
-/*  // OLD
-    WorldPacket data(SMSG_CONTACT_LIST, (4 + 4));           // just can guess size
-    data << uint32(mask);                                   // flag (0x1, 0x2, 0x4)
+    sLog->outDebug("WORLD: Sent SMSG_CONTACT_LIST");*/
+    WorldPacket data(SMSG_CONTACT_LIST, 4 + 4);              // just can guess size
     size_t countPos = data.wpos();
-    uint32 count = 0;
-    data << uint32(count);                                  // friends count
+    data << uint32(mask);                                    // unk flag (0x1, 0x2, 0x4), 0x7 if it include ignore list
+    data << uint32(count);                                   // friends count
 
     for (PlayerSocialMap::iterator itr = m_playerSocialMap.begin(); itr != m_playerSocialMap.end(); ++itr)
     {
-        sSocialMgr->GetFriendInfo(plr, itr->first, itr->second);
+        sSocialMgr->GetFriendInfo(player, itr->first, itr->second);
 
-        if (!(itr->second.Flags & mask))    
+        if (!(itr->second.Flags & mask))
             continue;
-    
+
         ++count;
 
         data << uint64(itr->first);                         // player guid
@@ -184,8 +183,8 @@ void PlayerSocial::SendSocialList(Player* plr)
 
     data.put<uint32>(countPos, count);
 
-    plr->GetSession()->SendPacket(&data);
-    sLog->outDebug("WORLD: Sent SMSG_CONTACT_LIST");*/
+    player->GetSession()->SendPacket(&data);
+    sLog->outDebug("WORLD: Sent SMSG_CONTACT_LIST");
 }
 
 bool PlayerSocial::HasFriend(uint32 friend_guid)
@@ -357,4 +356,3 @@ PlayerSocial *SocialMgr::LoadFromDB(PreparedQueryResult result, uint32 guid)
 
     return social;
 }
-

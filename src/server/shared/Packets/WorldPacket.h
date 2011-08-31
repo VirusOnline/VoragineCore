@@ -35,13 +35,13 @@ class WorldPacket : public ByteBuffer
         {
         }
         explicit WorldPacket(Opcodes enumVal, size_t res=200) : ByteBuffer(res)
-		{
-			SetOpcode(enumVal);
-		}
+        {
+            SetOpcode(enumVal);
+        }
         explicit WorldPacket(uint32 opcode, size_t res=200) : ByteBuffer(res)
-		{
+        {
             SetOpcode(opcode);
-		}
+        }
                                                             // copy constructor
         WorldPacket(const WorldPacket &packet)              : ByteBuffer(packet), m_opcode(packet.m_opcode), m_opcodeEnum(packet.m_opcodeEnum)
         {
@@ -65,6 +65,8 @@ class WorldPacket : public ByteBuffer
         inline void SetOpcode(uint32 opcode) { m_opcode = opcode; m_opcodeEnum = LookupOpcodeEnum(opcode); }
         inline void SetOpcode(Opcodes enumVal) { m_opcode = LookupOpcodeNumber(enumVal); m_opcodeEnum = enumVal; }
 
+        void compress(Opcodes opcode);
+
         void ReadByteMask(uint8& b)
         {
             b = readBit() ? 1 : 0;
@@ -86,8 +88,8 @@ class WorldPacket : public ByteBuffer
         }
 
     protected:
-
         uint32 m_opcode;
         Opcodes m_opcodeEnum;
+        void _compress(void* dst, uint32 *dst_size, const void* src, int src_size);
 };
 #endif

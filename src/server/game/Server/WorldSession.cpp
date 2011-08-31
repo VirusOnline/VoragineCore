@@ -35,6 +35,7 @@
 #include "Player.h"
 #include "Vehicle.h"
 #include "ObjectMgr.h"
+#include "GuildMgr.h"
 #include "Group.h"
 #include "Guild.h"
 #include "World.h"
@@ -46,7 +47,6 @@
 #include "zlib.h"
 #include "ScriptMgr.h"
 #include "Transport.h"
-#include "GuildMgr.h"
 
 bool MapSessionFilter::Process(WorldPacket *packet)
 {
@@ -90,21 +90,22 @@ bool WorldSessionFilter::Process(WorldPacket *packet)
 }
 
 /// WorldSession constructor
-WorldSession::WorldSession(uint32 id, WorldSocket *sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter):
+WorldSession::WorldSession(uint32 id, WorldSocket *sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter, bool isARecruiter):
 m_muteTime(mute_time), m_timeOutTime(0), _player(NULL), m_Socket(sock),
 _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
 m_inQueue(false), m_playerLoading(false), m_playerLogout(false),
 m_playerRecentlyLogout(false), m_playerSave(false),
 m_sessionDbcLocale(sWorld->GetAvailableDbcLocale(locale)),
-m_sessionDbLocaleIndex(locale),
-m_latency(0), m_TutorialsChanged(false), recruiterId(recruiter)
+m_sessionDbLocaleIndex(locale), m_latency(0), 
+m_TutorialsChanged(false), recruiterId(recruiter),
+isRecruiter(isARecruiter)
 {
     if (sock)
     {
         m_Address = sock->GetRemoteAddress();
         sock->AddReference();
         ResetTimeOutTime();
-        LoginDatabase.PExecute("UPDATE account SET online = '%u' WHERE id = %u;", realmID, GetAccountId());
+        LoginDatabase.PExecute("UPDATE account SET online = %d WHERE id = %u;", realmID,  GetAccountId());
     }
 
     InitializeQueryCallbackParameters();
@@ -133,20 +134,20 @@ WorldSession::~WorldSession()
     LoginDatabase.PExecute("UPDATE account SET online = 0 WHERE id = %u;", GetAccountId());
 }
 
-void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
+void WorldSession::SizeError(WorldPacket const &packet, uint32 size) const
 {
-    sLog->outError("Client (account %u) send packet %s (%u) with size " SIZEFMTD " but expected %u (attempt crash server?), skipped",
-        GetAccountId(),LookupOpcodeName(packet.GetOpcode()),packet.GetOpcode(),packet.size(),size);
+    sLog->outError("Client (account %u) send packet %s (%u) with size " SIZEFMTD " but expected %u (attempt to crash server?), skipped",
+        GetAccountId(), LookupOpcodeName(packet.GetOpcode()), packet.GetOpcode(), packet.size(), size);
 }
 
 /// Get the player name
-char const* WorldSession::GetPlayerName() const
+char const *WorldSession::GetPlayerName() const
 {
     return GetPlayer() ? GetPlayer()->GetName() : "<none>";
 }
 
 /// Send a packet to the client
-void WorldSession::SendPacket(WorldPacket const* packet)
+void WorldSession::SendPacket(WorldPacket const *packet)
 {
     if (!m_Socket)
         return;
@@ -154,7 +155,6 @@ void WorldSession::SendPacket(WorldPacket const* packet)
         return;
 
     #ifdef TRINITY_DEBUG
-
     // Code for network use statistic
     static uint64 sendPacketCount = 0;
     static uint64 sendPacketBytes = 0;
@@ -179,8 +179,8 @@ void WorldSession::SendPacket(WorldPacket const* packet)
     {
         uint64 minTime = uint64(cur_time - lastTime);
         uint64 fullTime = uint64(lastTime - firstTime);
-        sLog->outDetail("Send all time packets count: " UI64FMTD " bytes: " UI64FMTD " avr.count/sec: %f avr.bytes/sec: %f time: %u",sendPacketCount,sendPacketBytes,float(sendPacketCount)/fullTime,float(sendPacketBytes)/fullTime,uint32(fullTime));
-        sLog->outDetail("Send last min packets count: " UI64FMTD " bytes: " UI64FMTD " avr.count/sec: %f avr.bytes/sec: %f",sendLastPacketCount,sendLastPacketBytes,float(sendLastPacketCount)/minTime,float(sendLastPacketBytes)/minTime);
+        sLog->outDetail("Send all time packets count: " UI64FMTD " bytes: " UI64FMTD " avr.count/sec: %f avr.bytes/sec: %f time: %u", sendPacketCount, sendPacketBytes, float(sendPacketCount)/fullTime, float(sendPacketBytes)/fullTime, uint32(fullTime));
+        sLog->outDetail("Send last min packets count: " UI64FMTD " bytes: " UI64FMTD " avr.count/sec: %f avr.bytes/sec: %f", sendLastPacketCount, sendLastPacketBytes, float(sendLastPacketCount)/minTime, float(sendLastPacketBytes)/minTime);
 
         lastTime = cur_time;
         sendLastPacketCount = 1;
@@ -194,13 +194,13 @@ void WorldSession::SendPacket(WorldPacket const* packet)
 }
 
 /// Add an incoming packet to the queue
-void WorldSession::QueuePacket(WorldPacket* new_packet)
+void WorldSession::QueuePacket(WorldPacket *new_packet)
 {
     _recvQueue.add(new_packet);
 }
 
 /// Logging helper for unexpected opcodes
-void WorldSession::LogUnexpectedOpcode(WorldPacket *packet, const char* status, const char *reason)
+void WorldSession::LogUnexpectedOpcode(WorldPacket* packet, const char* status, const char *reason)
 {
     sLog->outError("SESSION (account: %u, guidlow: %u, char: %s): received unexpected opcode %s (0x%.4X, status: %s) %s",
         GetAccountId(), m_GUIDLow, _player ? _player->GetName() : "<none>",
@@ -208,14 +208,11 @@ void WorldSession::LogUnexpectedOpcode(WorldPacket *packet, const char* status, 
 }
 
 /// Logging helper for unexpected opcodes
-void WorldSession::LogUnprocessedTail(WorldPacket *packet)
+void WorldSession::LogUnprocessedTail(WorldPacket* packet)
 {
     sLog->outError("SESSION: opcode %s (0x%.4X) have unprocessed tail data (read stop at %u from %u)",
-        LookupOpcodeName(packet->GetOpcode()),
-        packet->GetOpcode(),
-        uint32(packet->rpos()), uint32(packet->wpos()));
-
-        packet->print_storage();
+        LookupOpcodeName(packet->GetOpcode()), packet->GetOpcode(), uint32(packet->rpos()), uint32(packet->wpos()));
+    packet->print_storage();
 }
 
 /// Update the WorldSession (triggered by World update)
@@ -411,18 +408,18 @@ void WorldSession::LogoutPlayer(bool Save)
             _player->RemoveAllAurasOnDeath();
 
             // build set of player who attack _player or who have pet attacking of _player
-            std::set<Player*> aset;
+            std::set<Player *> aset;
             for (Unit::AttackerSet::const_iterator itr = _player->getAttackers().begin(); itr != _player->getAttackers().end(); ++itr)
             {
-                Unit* owner = (*itr)->GetOwner();           // including player controlled case
+                Unit *owner = (*itr)->GetOwner();           // including player controlled case
                 if (owner)
                 {
                     if (owner->GetTypeId() == TYPEID_PLAYER)
-              aset.insert(owner->ToPlayer());
+                        aset.insert(owner->ToPlayer());
                 }
                 else
-                if ((*itr)->GetTypeId() == TYPEID_PLAYER)
-                    aset.insert((Player*)(*itr));
+                    if ((*itr)->GetTypeId() == TYPEID_PLAYER)
+                        aset.insert((Player*)(*itr));
             }
 
             _player->SetPvPDeath(!aset.empty());
@@ -431,14 +428,14 @@ void WorldSession::LogoutPlayer(bool Save)
             _player->RepopAtGraveyard();
 
             // give honor to all attackers from set like group case
-            for (std::set<Player*>::const_iterator itr = aset.begin(); itr != aset.end(); ++itr)
-                (*itr)->RewardHonor(_player,aset.size());
+            for (std::set<Player *>::const_iterator itr = aset.begin(); itr != aset.end(); ++itr)
+                (*itr)->RewardHonor(_player, aset.size());
 
             // give bg rewards and update counters like kill by first from attackers
             // this can't be called for all attackers.
             if (!aset.empty())
                 if (Battleground *bg = _player->GetBattleground())
-                    bg->HandleKillPlayer(_player,*aset.begin());
+                    bg->HandleKillPlayer(_player, *aset.begin());
         }
         else if (_player->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
         {
@@ -463,7 +460,7 @@ void WorldSession::LogoutPlayer(bool Save)
         if (!_player->m_InstanceValid && !_player->isGameMaster())
             _player->TeleportTo(_player->m_homebindMapId, _player->m_homebindX, _player->m_homebindY, _player->m_homebindZ, _player->GetOrientation());
 
-        sOutdoorPvPMgr->HandlePlayerLeaveZone(_player,_player->GetZoneId());
+        sOutdoorPvPMgr->HandlePlayerLeaveZone(_player, _player->GetZoneId());
 
         for (int i=0; i < PLAYER_MAX_BATTLEGROUND_QUEUES; ++i)
         {
@@ -484,7 +481,7 @@ void WorldSession::LogoutPlayer(bool Save)
             pGuild->HandleMemberLogout(this);
 
         ///- Remove pet
-        _player->RemovePet(NULL,PET_SAVE_AS_CURRENT, true);
+        _player->RemovePet(NULL, PET_SAVE_AS_CURRENT, true);
 
         ///- empty buyback items and save the player in the database
         // some save parts only correctly work in case player present in map/player_lists (pets, etc)
@@ -542,8 +539,7 @@ void WorldSession::LogoutPlayer(bool Save)
 
         ///- Since each account can only have one online character at any given time, ensure all characters for active account are marked as offline
         //No SQL injection as AccountId is uint32
-        CharacterDatabase.PExecute("UPDATE characters SET online = 0 WHERE account = '%u'",
-            GetAccountId());
+        CharacterDatabase.PExecute("UPDATE characters SET online = 0 WHERE account = '%u'", GetAccountId());
         sLog->outDebug("SESSION: Sent SMSG_LOGOUT_COMPLETE Message");
     }
 
@@ -557,7 +553,7 @@ void WorldSession::LogoutPlayer(bool Save)
 void WorldSession::KickPlayer()
 {
     if (m_Socket)
-        m_Socket->CloseSocket ();
+        m_Socket->CloseSocket();
 }
 
 void WorldSession::HandleMoveToGraveyard(WorldPacket &recv_data)
@@ -572,31 +568,31 @@ void WorldSession::SendNotification(const char *format,...)
     if (format)
     {
         va_list ap;
-        char szStr [1024];
+        char szStr[1024];
         szStr[0] = '\0';
         va_start(ap, format);
         vsnprintf(szStr, 1024, format, ap);
         va_end(ap);
 
-        WorldPacket data(SMSG_NOTIFICATION, (strlen(szStr)+1));
+        WorldPacket data(SMSG_NOTIFICATION, (strlen(szStr) + 1));
         data << szStr;
         SendPacket(&data);
     }
 }
 
-void WorldSession::SendNotification(uint32 string_id,...)
+void WorldSession::SendNotification(uint32 string_id, ...)
 {
     char const* format = GetVoragineString(string_id);
     if (format)
     {
         va_list ap;
-        char szStr [1024];
+        char szStr[1024];
         szStr[0] = '\0';
         va_start(ap, string_id);
         vsnprintf(szStr, 1024, format, ap);
         va_end(ap);
 
-        WorldPacket data(SMSG_NOTIFICATION, (strlen(szStr)+1));
+        WorldPacket data(SMSG_NOTIFICATION, (strlen(szStr) + 1));
         data << szStr;
         SendPacket(&data);
     }
@@ -609,30 +605,22 @@ const char * WorldSession::GetVoragineString(int32 entry) const
 
 void WorldSession::Handle_NULL(WorldPacket& recvPacket)
 {
-    sLog->outError("SESSION: received unhandled opcode %s (0x%.4X)",
-        LookupOpcodeName(recvPacket.GetOpcode()),
-        recvPacket.GetOpcode());
+    sLog->outError("SESSION: received unhandled opcode %s (0x%.4X)", LookupOpcodeName(recvPacket.GetOpcode()), recvPacket.GetOpcode());
 }
 
 void WorldSession::Handle_EarlyProccess(WorldPacket& recvPacket)
 {
-    sLog->outError("SESSION: received opcode %s (0x%.4X) that must be processed in WorldSocket::OnRead",
-        LookupOpcodeName(recvPacket.GetOpcode()),
-        recvPacket.GetOpcode());
+    sLog->outError("SESSION: received opcode %s (0x%.4X) that must be processed in WorldSocket::OnRead", LookupOpcodeName(recvPacket.GetOpcode()), recvPacket.GetOpcode());
 }
 
 void WorldSession::Handle_ServerSide(WorldPacket& recvPacket)
 {
-    sLog->outError("SESSION: received server-side opcode %s (0x%.4X)",
-        LookupOpcodeName(recvPacket.GetOpcode()),
-        recvPacket.GetOpcode());
+    sLog->outError("SESSION: received server-side opcode %s (0x%.4X)", LookupOpcodeName(recvPacket.GetOpcode()), recvPacket.GetOpcode());
 }
 
 void WorldSession::Handle_Deprecated(WorldPacket& recvPacket)
 {
-    sLog->outError("SESSION: received deprecated opcode %s (0x%.4X)",
-        LookupOpcodeName(recvPacket.GetOpcode()),
-        recvPacket.GetOpcode());
+    sLog->outError("SESSION: received deprecated opcode %s (0x%.4X)", LookupOpcodeName(recvPacket.GetOpcode()), recvPacket.GetOpcode());
 }
 
 void WorldSession::SendAuthWaitQue(uint32 position)
@@ -671,40 +659,34 @@ void WorldSession::LoadAccountData(PreparedQueryResult result, uint32 mask)
 
     do
     {
-        Field* fields = result->Fetch();
+        Field *fields = result->Fetch();
         uint32 type = fields[0].GetUInt8();
         if (type >= NUM_ACCOUNT_DATA_TYPES)
         {
-            sLog->outError("Table `%s` have invalid account data type (%u), ignore.",
-                mask == GLOBAL_CACHE_MASK ? "account_data" : "character_account_data", type);
+            sLog->outError("Table `%s` have invalid account data type (%u), ignore.", mask == GLOBAL_CACHE_MASK ? "account_data" : "character_account_data", type);
             continue;
         }
 
         if ((mask & (1 << type)) == 0)
         {
-            sLog->outError("Table `%s` have non appropriate for table  account data type (%u), ignore.",
-                mask == GLOBAL_CACHE_MASK ? "account_data" : "character_account_data", type);
+            sLog->outError("Table `%s` have non appropriate for table  account data type (%u), ignore.", mask == GLOBAL_CACHE_MASK ? "account_data" : "character_account_data", type);
             continue;
         }
 
         m_accountData[type].Time = time_t(fields[1].GetUInt32());
         m_accountData[type].Data = fields[2].GetString();
-
     }
     while (result->NextRow());
 }
 
 void WorldSession::SetAccountData(AccountDataType type, time_t time_, std::string data)
 {
+    uint32 id = 0;
+    uint32 index = 0;
     if ((1 << type) & GLOBAL_CACHE_MASK)
     {
-        uint32 acc = GetAccountId();
-
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
-        trans->PAppend("DELETE FROM account_data WHERE account='%u' AND type='%u'", acc, type);
-        CharacterDatabase.EscapeString(data);
-        trans->PAppend("INSERT INTO account_data VALUES ('%u','%u','%u','%s')", acc, type, (uint32)time_, data.c_str());
-        CharacterDatabase.CommitTransaction(trans);
+        id = GetAccountId();
+        index = CHAR_SET_ACCOUNT_DATA;
     }
     else
     {
@@ -712,12 +694,16 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time_, std::strin
         if (!m_GUIDLow)
             return;
 
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
-        trans->PAppend("DELETE FROM character_account_data WHERE guid='%u' AND type='%u'", m_GUIDLow, type);
-        CharacterDatabase.EscapeString(data);
-        trans->PAppend("INSERT INTO character_account_data VALUES ('%u','%u','%u','%s')", m_GUIDLow, type, (uint32)time_, data.c_str());
-        CharacterDatabase.CommitTransaction(trans);
+        id = m_GUIDLow;
+        index = CHAR_SET_PLAYER_ACCOUNT_DATA;
     }
+
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(index);
+    stmt->setUInt32(0, id);
+    stmt->setUInt8 (1, type);
+    stmt->setUInt32(2, uint32(time_));
+    stmt->setString(3, data);
+    CharacterDatabase.Execute(stmt);
 
     m_accountData[type].Time = time_;
     m_accountData[type].Data = data;
@@ -725,7 +711,7 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time_, std::strin
 
 void WorldSession::SendAccountDataTimes(uint32 mask)
 {
-    WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, 4+1+4+8*4); // changed in WotLK
+    WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, 4 + 1 + 4 + 8 * 4); // changed in WotLK
     data << uint32(time(NULL));                             // unix time of something
     data << uint8(1);
     data << uint32(mask);                                   // type mask
@@ -737,49 +723,39 @@ void WorldSession::SendAccountDataTimes(uint32 mask)
 
 void WorldSession::LoadTutorialsData()
 {
-    for (int aX = 0 ; aX < MAX_CHARACTER_TUTORIAL_VALUES ; ++aX)
-        m_Tutorials[ aX ] = 0;
+    memset(m_Tutorials, 0, sizeof(uint32) * MAX_CHARACTER_TUTORIAL_VALUES);
 
-    QueryResult result = CharacterDatabase.PQuery("SELECT tut0,tut1,tut2,tut3,tut4,tut5,tut6,tut7 FROM character_tutorial WHERE account = '%u'", GetAccountId());
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_LOAD_TUTORIALS);
+    stmt->setUInt32(0, GetAccountId());
+    if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
+        for (uint8 i = 0; i < MAX_CHARACTER_TUTORIAL_VALUES; ++i)
+            m_Tutorials[i] = (*result)[i].GetUInt32();
 
-    if (result)
-    {
-        do
-        {
-            Field *fields = result->Fetch();
-
-            for (int iI = 0; iI < MAX_CHARACTER_TUTORIAL_VALUES; ++iI)
-                m_Tutorials[iI] = fields[iI].GetUInt32();
-        }
-        while (result->NextRow());
-    }
     m_TutorialsChanged = false;
 }
 
 void WorldSession::SendTutorialsData()
 {
     WorldPacket data(SMSG_TUTORIAL_FLAGS, 4 * MAX_CHARACTER_TUTORIAL_VALUES);
-    for (uint32 i = 0; i < MAX_CHARACTER_TUTORIAL_VALUES; ++i)
+    for (uint8 i = 0; i < MAX_CHARACTER_TUTORIAL_VALUES; ++i)
         data << m_Tutorials[i];
     SendPacket(&data);
 }
 
-void WorldSession::SaveTutorialsData(SQLTransaction& trans)
+void WorldSession::SaveTutorialsData(SQLTransaction &trans)
 {
     if (!m_TutorialsChanged)
         return;
 
-    uint32 Rows=0;
-    // it's better than rebuilding indexes multiple times
-    QueryResult result = CharacterDatabase.PQuery("SELECT count(*) AS r FROM character_tutorial WHERE account = '%u'", GetAccountId());
-    if (result)
-        Rows = result->Fetch()[0].GetUInt32();
-
-    if (Rows)
-        trans->PAppend("UPDATE character_tutorial SET tut0='%u', tut1='%u', tut2='%u', tut3='%u', tut4='%u', tut5='%u', tut6='%u', tut7='%u' WHERE account = '%u'",
-            m_Tutorials[0], m_Tutorials[1], m_Tutorials[2], m_Tutorials[3], m_Tutorials[4], m_Tutorials[5], m_Tutorials[6], m_Tutorials[7], GetAccountId());
-    else
-        trans->PAppend("INSERT INTO character_tutorial (account,tut0,tut1,tut2,tut3,tut4,tut5,tut6,tut7) VALUES ('%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u', '%u')", GetAccountId(), m_Tutorials[0], m_Tutorials[1], m_Tutorials[2], m_Tutorials[3], m_Tutorials[4], m_Tutorials[5], m_Tutorials[6], m_Tutorials[7]);
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_GET_HAS_TUTORIALS);
+    stmt->setUInt32(0, GetAccountId());
+    bool hasTutorials = !CharacterDatabase.Query(stmt).null();
+    // Modify data in DB
+    stmt = CharacterDatabase.GetPreparedStatement(hasTutorials ? CHAR_SET_TUTORIALS : CHAR_ADD_TUTORIALS);
+    for (uint8 i = 0; i < MAX_CHARACTER_TUTORIAL_VALUES; ++i)
+        stmt->setUInt32(i, m_Tutorials[i]);
+    stmt->setUInt32(MAX_CHARACTER_TUTORIAL_VALUES, GetAccountId());
+    trans->Append(stmt);
 
     m_TutorialsChanged = false;
 }
@@ -807,7 +783,7 @@ void WorldSession::ReadAddonsInfo(WorldPacket &data)
     ByteBuffer addonInfo;
     addonInfo.resize(size);
 
-    if (uncompress(const_cast<uint8*>(addonInfo.contents()), &uSize, const_cast<uint8*>(data.contents() + pos), data.size() - pos) == Z_OK)
+    if (uncompress(const_cast<uint8 *>(addonInfo.contents()), &uSize, const_cast<uint8 *>(data.contents() + pos), data.size() - pos) == Z_OK)
     {
         uint32 addonsCount;
         addonInfo >> addonsCount;                         // addons count
@@ -819,12 +795,14 @@ void WorldSession::ReadAddonsInfo(WorldPacket &data)
             uint32 crc, unk1;
 
             // check next addon data format correctness
-            if (addonInfo.rpos()+1 > addonInfo.size())
+            if (addonInfo.rpos() + 1 > addonInfo.size())
                 return;
 
             addonInfo >> addonName;
 
             addonInfo >> enabled >> crc >> unk1;
+
+            sLog->outDetail("ADDON: Name: %s, Enabled: 0x%x, CRC: 0x%x, Unknown2: 0x%x", addonName.c_str(), enabled, crc, unk1);
 
             AddonInfo addon(addonName, enabled, crc, 2, true);
 
@@ -835,9 +813,18 @@ void WorldSession::ReadAddonsInfo(WorldPacket &data)
 
                 if (addon.CRC != savedAddon->CRC)
                     match = false;
+
+                if (!match)
+                    sLog->outDetail("ADDON: %s was known, but didn't match known CRC (0x%x)!", addon.Name.c_str(), savedAddon->CRC);
+                else
+                    sLog->outDetail("ADDON: %s was known, CRC is correct (0x%x)", addon.Name.c_str(), savedAddon->CRC);
             }
             else
+            {
                 sAddonMgr->SaveAddon(addon);
+
+                sLog->outDetail("ADDON: %s (0x%x) was not known, saving...", addon.Name.c_str(), addon.CRC);
+            }
 
             // TODO: Find out when to not use CRC/pubkey, and other possible states.
             m_addonsList.push_back(addon);
@@ -890,10 +877,13 @@ void WorldSession::SendAddonsInfo()
             data << uint8(usepk);
             if (usepk)                                      // if CRC is wrong, add public key (client need it)
             {
+                sLog->outDetail("ADDON: CRC (0x%x) for addon %s is wrong (does not match expected 0x%x), sending pubkey",
+                    itr->CRC, itr->Name.c_str(), STANDARD_ADDON_CRC);
+
                 data.append(addonPublicKey, sizeof(addonPublicKey));
             }
 
-            data << uint32(/*itr->CRC*/ 0);                 // TODO: Find out the meaning of this.
+            data << uint32(0);                              // TODO: Find out the meaning of this.
         }
 
         uint8 unk3 = 0;                                     // 0 is sent here
@@ -907,16 +897,7 @@ void WorldSession::SendAddonsInfo()
 
     m_addonsList.clear();
 
-    uint32 count = 0;
-    data << uint32(count);
-    /*for (uint32 i = 0; i < count; ++i)
-    {
-        uint32
-        string (16 bytes)
-        string (16 bytes)
-        uint32
-        uint32
-    }*/
+    data << uint32(0); // count for an unknown for loop
 
     SendPacket(&data);
 }
@@ -936,7 +917,6 @@ void WorldSession::InitializeQueryCallbackParameters()
     // initialized to NULL here.
     m_charCreateCallback.SetParam(NULL);
 }
-
 
 void WorldSession::ProcessQueryCallbacks()
 {
@@ -973,7 +953,6 @@ void WorldSession::ProcessQueryCallbacks()
         HandleCharCreateCallback(pResult, m_charCreateCallback.GetParam());
         // Don't call FreeResult() here, the callback handler will do that depending on the events in the callback chain
     }
-
     //! HandlePlayerLoginOpcode
     if (m_charLoginCallback.ready())
     {
@@ -1018,12 +997,29 @@ void WorldSession::ProcessQueryCallbacks()
         m_sendStabledPetCallback.FreeResult();
     }
 
-    //- HandleStableChangeSlot
-    if (m_stableChangeSlotCallback.IsReady())
+    //- HandleStablePet
+    if (m_stablePetCallback.ready())
     {
-        uint8 param = m_stableChangeSlotCallback.GetParam();
-        m_stableChangeSlotCallback.GetResult(result);
-        HandleStableChangeSlotCallback(result, param);
-        m_stableChangeSlotCallback.FreeResult();
+        m_stablePetCallback.get(result);
+        HandleStablePetCallback(result);
+        m_stablePetCallback.cancel();
+    }
+
+    //- HandleUnstablePet
+    if (m_unstablePetCallback.IsReady())
+    {
+        uint32 param = m_unstablePetCallback.GetParam();
+        m_unstablePetCallback.GetResult(result);
+        HandleUnstablePetCallback(result, param);
+        m_unstablePetCallback.FreeResult();
+    }
+
+    //- HandleStableSwapPet
+    if (m_stableSwapCallback.IsReady())
+    {
+        uint32 param = m_stableSwapCallback.GetParam();
+        m_stableSwapCallback.GetResult(result);
+        HandleStableSwapPetCallback(result, param);
+        m_stableSwapCallback.FreeResult();
     }
 }

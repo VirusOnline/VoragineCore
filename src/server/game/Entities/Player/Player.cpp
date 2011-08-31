@@ -888,6 +888,8 @@ Player::Player (WorldSession *session): Unit(), m_achievementMgr(this), m_reputa
     m_lastFallTime = 0;
     m_lastFallZ = 0;
 
+    m_grantableLevels = 0;
+
     m_ControlledByPlayer = true;
     m_isWorldObject = true;
 
@@ -3199,6 +3201,16 @@ void Player::GiveLevel(uint8 level)
     }
 
     GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
+
+    // Refer-A-Friend
+    if (GetSession()->GetRecruiterId())
+        if (level < sWorld->getIntConfig(CONFIG_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL))
+            if (level % 2 == 0) {
+                ++m_grantableLevels;
+
+                if (!HasByteFlag(PLAYER_FIELD_BYTES, 1, 0x01))
+                    SetByteFlag(PLAYER_FIELD_BYTES, 1, 0x01);
+            }
 
     sScriptMgr->OnPlayerLevelChanged(this, oldLevel);
 }
@@ -17107,9 +17119,9 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, instance_mode_mask, "
     //     39          40            41             42           43          44      45      46      47      48      49      50      51      52      53      54      55
     //"totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, health, power1, power2, power3, power4, power5, power6, power7, power8, power9, power10,"
-    //      56          57          58           59             60          61               62             63           64           65                   66
-    //"instance_id, speccount, activespec, exploredZones, equipmentCache, knownTitles, achievementPoints, actionBars, latency, deleteInfos_Account, deleteInfos_Name,"
-    //     67          68             69                 70                  71           72          73            74
+    //      56          57          58           59             60          61               62               63            64           65             66                 67
+    //"instance_id, speccount, activespec, exploredZones, equipmentCache, knownTitles, achievementPoints, actionBars, grantableLevels, latency, deleteInfos_Account, deleteInfos_Name,"
+    //     68          69             70                 71                  72           73          74            75
     //"deleteDate, arenaPoints, totalHonorPoints, yesterdayhonorPoints, knownCurrencies, ammoId, currentPetSlot, petSlotUsed" FROM characters WHERE guid = '%u'", guid);
 
     PreparedQueryResult result = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOADFROM);
@@ -17183,8 +17195,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // set which actionbars the client has active - DO NOT REMOVE EVER AGAIN (can be changed though, if it does change fieldwise)
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[63].GetUInt8()); // actionBars
 
-    m_currentPetSlot = (PetSlot)fields[73].GetUInt32(); // currentPetSlot
-    m_petSlotUsed = fields[74].GetUInt32(); // petSlotUsed
+    m_currentPetSlot = (PetSlot)fields[74].GetUInt32(); // currentPetSlot
+    m_petSlotUsed = fields[75].GetUInt32(); // petSlotUsed
 
     InitDisplayIds();
 
@@ -17714,6 +17726,14 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
                 break;
         }
     }
+
+    // RaF stuff.
+    m_grantableLevels = fields[64].GetUInt32();
+    if (GetSession()->IsARecruiter() || (GetSession()->GetRecruiterId() != 0))
+        SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_REFER_A_FRIEND);
+
+    if (m_grantableLevels > 0)
+        SetByteValue(PLAYER_FIELD_BYTES, 1, 0x01);
 
     _LoadDeclinedNames(holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES));
 
@@ -18971,8 +18991,10 @@ void Player::SaveToDB()
         "death_expire_time, taxi_path, totalKills, todayKills, yesterdayKills, chosenTitle, "
         //45               46      47      48      49      50      51      52      53      54      55      56      57      58
         "watchedFaction, drunk, health, power1, power2, power3, power4, power5, power6, power7, power8, power9, power10, latency, "
-        //59            60            61            62            63         64            65               66            67            68
-        "speccount, activespec, exploredZones, equipmentCache, ammoId, knownTitles, achievementPoints, actionBars, currentPetSlot, petSlotUsed) VALUES ("
+        //59            60            61            62            63         64            65               66    
+        "speccount, activespec, exploredZones, equipmentCache, ammoId, knownTitles, achievementPoints, actionBars, "
+        //67                    68             69
+        "grantableLevels, currentPetSlot, petSlotUsed) VALUES ("
         << GetGUIDLow() << ", " // 1
         << GetSession()->GetAccountId() << ", '" // 2
         << sql_name << "', " // 3
@@ -19094,9 +19116,11 @@ void Player::SaveToDB()
     ss << uint32(GetByteValue(PLAYER_FIELD_BYTES, 2)); // 66
 
     ss << ", ";
-    ss << m_currentPetSlot << " "; // 67
+    ss << uint32(m_grantableLevels); // 67
     ss << ", ";
-    ss << m_petSlotUsed; // 68
+    ss << m_currentPetSlot << " "; // 68
+    ss << ", ";
+    ss << m_petSlotUsed; // 69
 
     ss << ")";
 
@@ -22200,7 +22224,7 @@ void Player::SetGroup(Group* group, int8 subgroup)
 void Player::SendInitialPacketsBeforeAddToMap()
 {
     /// Pass 'this' as argument because we're not stored in ObjectAccessor yet
-    GetSocial()->SendSocialList(this);
+    GetSocial()->SendSocialList(this, SOCIAL_FLAG_FRIEND | SOCIAL_FLAG_IGNORED | SOCIAL_FLAG_MUTED);
 
     // guild bank list wtf?
 
@@ -25646,6 +25670,16 @@ void Player::SendClearFocus(Unit* target)
     WorldPacket data(SMSG_BREAK_TARGET, target->GetPackGUID().size());
     data.append(target->GetPackGUID());
     GetSession()->SendPacket(&data);
+}
+
+bool Player::IsInWhisperWhiteList(uint64 guid)
+{
+    for (WhisperListContainer::const_iterator itr = WhisperList.begin(); itr != WhisperList.end(); ++itr)
+    {
+        if (*itr == guid)
+            return true;
+    }
+    return false;
 }
 
 void Player::SetInGuild(uint32 GuildId)

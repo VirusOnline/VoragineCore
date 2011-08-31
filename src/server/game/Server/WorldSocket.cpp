@@ -276,25 +276,21 @@ int WorldSocket::open (void *a)
 
     m_Address = remote_addr.get_host_addr();
 
-    WorldPacket packet (0x4F57);   // 4.1 hax ("WO")
-    packet << "RLD OF WARCRAFT CONNECTION - SERVER TO CLIENT";
-    if (SendPacket(packet) == -1)
-        return -1;
+    SendAuthConnection();
 
     // Send startup packet.
-    packet.Initialize(SMSG_AUTH_CHALLENGE, 37);
-    
-    BigNumber seed1;
-    seed1.SetRand(16 * 8);
-    packet.append(seed1.AsByteArray(16), 16);               // new encryption seeds
-    
-    packet << uint32(m_Seed);
+    WorldPacket packet(SMSG_AUTH_CHALLENGE, 37);
+    packet << uint32(0);
+    packet << uint32(0);
+    packet << uint32(0);
+    packet << uint32(0);
+    packet << m_Seed;
     packet << uint8(1);
+    packet << uint32(0);
+    packet << uint32(0);
+    packet << uint32(0);
+    packet << uint32(0);
 
-    BigNumber seed2;
-    seed2.SetRand(16 * 8);
-    packet.append(seed2.AsByteArray(16), 16);               // new encryption seeds
-    
     if (SendPacket(packet) == -1)
         return -1;
 
@@ -311,7 +307,15 @@ int WorldSocket::open (void *a)
     return 0;
 }
 
-int WorldSocket::close (int)
+int WorldSocket::HandleAuthConnection(WorldPacket& recvPacket)
+{
+    std::string ClientToServerMsg;
+    recvPacket >> ClientToServerMsg;
+
+    return 0;
+}
+
+int WorldSocket::close (u_long)
 {
     shutdown();
 
@@ -735,6 +739,9 @@ int WorldSocket::ProcessIncoming (WorldPacket* new_pct)
         Opcodes opcodeEnum = LookupOpcodeEnum(opcode);
         switch(opcodeEnum)
         {
+            case MSG_CHECK_CONNECTION:
+                sScriptMgr->OnPacketReceive(this, WorldPacket(*new_pct));
+                return HandleAuthConnection(*new_pct);
             case CMSG_PING:
                 return HandlePing (*new_pct);
             case CMSG_AUTH_SESSION:
@@ -1027,6 +1034,10 @@ int WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
                 accountName.c_str(),
                 address.c_str());
 
+     bool isRecruiter = false;
+     if (result)
+        isRecruiter = true;
+
     // Update the last_ip in the database
     // No SQL injection, username escaped.
     LoginDatabase.EscapeString (address);
@@ -1038,7 +1049,7 @@ int WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
                             safe_account.c_str());
 
     // NOTE ATM the socket is single-threaded, have this in mind ...
-    ACE_NEW_RETURN (m_Session, WorldSession (id, this, AccountTypes(security), expansion, mutetime, locale, recruiter), -1);
+    ACE_NEW_RETURN (m_Session, WorldSession (id, this, AccountTypes(security), expansion, mutetime, locale, recruiter, isRecruiter), -1);
 
     m_Crypt.Init(&K);
 

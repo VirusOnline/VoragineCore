@@ -279,7 +279,7 @@ void AuctionHouseMgr::SendAuctionOutbiddedMail(AuctionEntry *auction, uint64 new
         msgAuctionOutbiddedSubject << auction->item_template << ":0:" << AUCTION_OUTBIDDED << ":0:0";
 
         if (oldBidder && newBidder)
-            oldBidder->GetSession()->SendAuctionBidderNotification(auction->GetHouseId(), auction->Id, newBidder->GetGUID(), (newPrice >> 32), auction->GetAuctionOutBid(), auction->item_template);
+            oldBidder->GetSession()->SendAuctionBidderNotification(auction->GetHouseId(), auction->Id, newBidder->GetGUID(), newPrice, auction->GetAuctionOutBid(), auction->item_template);
 
         MailDraft(msgAuctionOutbiddedSubject.str(), "")     // TODO: fix body
             .AddMoney(auction->bid)

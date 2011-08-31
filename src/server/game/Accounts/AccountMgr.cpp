@@ -63,10 +63,10 @@ AccountOpResult AccountMgr::DeleteAccount(uint32 accid)
         do
         {
             Field *fields = result->Fetch();
-            uint32 guidlo = fields[0].GetUInt32();
-            uint64 guid = MAKE_NEW_GUID(guidlo, 0, HIGHGUID_PLAYER);
+            uint32 guidLow = (*result)[0].GetUInt32();
+            uint64 guid = MAKE_NEW_GUID(guidLow, 0, HIGHGUID_PLAYER);
 
-            // kick if player currently
+            // kick if player is online
             if (Player* p = ObjectAccessor::FindPlayer(guid))
             {
                 WorldSession* s = p->GetSession();
@@ -79,8 +79,12 @@ AccountOpResult AccountMgr::DeleteAccount(uint32 accid)
     }
 
     // table realm specific but common for all characters of account for realm
-    CharacterDatabase.PExecute("DELETE FROM character_tutorial WHERE account = '%u'", accid);
-    CharacterDatabase.PExecute("DELETE FROM account_data WHERE account = '%u'", accid);
+    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_TUTORIALS);
+    stmt->setUInt32(0, accid);
+    CharacterDatabase.Execute(stmt);
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_DATA);
+    stmt->setUInt32(0, accid);
+    CharacterDatabase.Execute(stmt);
 
     SQLTransaction trans = LoginDatabase.BeginTransaction();
 
