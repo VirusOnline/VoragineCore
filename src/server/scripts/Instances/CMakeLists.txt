@@ -321,6 +321,12 @@ set(scripts_STAT_SRCS
   Instances/ZulGurub/boss_wushoolay.cpp
   Instances/ZulGurub/instance_zulgurub.cpp
   Instances/ZulGurub/zulgurub.h
+  Instances/ThroneOfTheTides/instance_throne_of_the_tides.cpp
+  Instances/ThroneOfTheTides/throne_of_the_tides.h
+  Instances/ThroneOfTheTides/boss_commander_ulthok.cpp
+  Instances/ThroneOfTheTides/boss_erunak_stonespeaker.cpp
+  Instances/ThroneOfTheTides/boss_lady_nazjar.cpp
+  Instances/ThroneOfTheTides/npc_neptulon.cpp
 )
 
 message("  -> Prepared: Instances")
