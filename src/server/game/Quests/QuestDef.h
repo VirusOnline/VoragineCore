@@ -157,7 +157,6 @@ enum QuestSpecialFlags
     QUEST_SPECIAL_FLAGS_REPEATABLE           = 0x001,  // Set by 1 in SpecialFlags from DB
     QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT = 0x002,  // Set by 2 in SpecialFlags from DB (if reequired area explore, spell SPELL_EFFECT_QUEST_COMPLETE casting, table `*_script` command SCRIPT_COMMAND_QUEST_EXPLORED use, set from script)
     //QUEST_SPECIAL_FLAGS_MONTHLY              = 0x004,  // Set by 4 in SpecialFlags. Quest reset for player at beginning of month.
- 
 
     // Voragine flags for internal use only
     QUEST_SPECIAL_FLAGS_DELIVER              = 0x008,  // Internal flag computed only
@@ -165,11 +164,11 @@ enum QuestSpecialFlags
     QUEST_SPECIAL_FLAGS_KILL_OR_CAST         = 0x020,  // Internal flag computed only
     QUEST_SPECIAL_FLAGS_TIMED                = 0x040,  // Internal flag computed only
 
-    QUEST_SPECIAL_FLAG_AUTO_ACCEPT          = 0x400,  // Set by 4 in SpecialFlags in DB if the quest is to be auto-accepted.
+    QUEST_SPECIAL_FLAGS_AUTO_ACCEPT          = 0x400,  // Set by 4 in SpecialFlags in DB if the quest is to be auto-accepted.
     QUEST_SPECIAL_FLAGS_DF_QUEST             = 0x800,  // Set by 8 in SpecialFlags in DB if the quest is used by Dungeon Finder.
 };
 
-#define QUEST_SPECIAL_FLAG_DB_ALLOWED (QUEST_SPECIAL_FLAGS_REPEATABLE | QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT | QUEST_SPECIAL_FLAG_AUTO_ACCEPT | QUEST_SPECIAL_FLAGS_DF_QUEST)
+#define QUEST_SPECIAL_FLAG_DB_ALLOWED (QUEST_SPECIAL_FLAGS_REPEATABLE | QUEST_SPECIAL_FLAGS_EXPLORATION_OR_EVENT | QUEST_SPECIAL_FLAGS_AUTO_ACCEPT | QUEST_SPECIAL_FLAGS_DF_QUEST)
 
 struct QuestLocale
 {

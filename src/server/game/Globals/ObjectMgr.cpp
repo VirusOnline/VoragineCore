@@ -2716,7 +2716,8 @@ void ObjectMgr::LoadItemTemplates()
                     continue;
                 }
 
-                if (BAG_FAMILY_MASK_CURRENCY_TOKENS & mask)
+                // This is not working properly.(Wrong errors..)
+                /*if (BAG_FAMILY_MASK_CURRENCY_TOKENS & mask)
                 {
                     CurrencyTypesEntry const* ctEntry = sCurrencyTypesStore.LookupEntry(itemTemplate.ItemId);
                     if (!ctEntry)
@@ -2724,7 +2725,7 @@ void ObjectMgr::LoadItemTemplates()
                         sLog->outErrorDb("Item (Entry: %u) has currency bag family bit set in BagFamily but not listed in CurrencyTypes.dbc, remove bit", entry);
                         itemTemplate.BagFamily &= ~mask;
                     }
-                }
+                }*/
             }
         }
 
