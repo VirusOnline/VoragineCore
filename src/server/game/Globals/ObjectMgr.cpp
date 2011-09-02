@@ -428,15 +428,6 @@ void ObjectMgr::LoadPointOfInterestLocales()
     sLog->outString();
 }
 
-
-
-
-
-
-
-
-
-
 void ObjectMgr::LoadCreatureTemplates()
 {
     uint32 oldMSTime = getMSTime();
@@ -481,11 +472,8 @@ void ObjectMgr::LoadCreatureTemplates()
             creatureTemplate.DifficultyEntry[i] = fields[1 + i].GetUInt32();
         for (uint8 i = 0; i < MAX_KILL_CREDIT; ++i)
             creatureTemplate.KillCredit[i] = fields[4 + i].GetUInt32();
-
-        creatureTemplate.Modelid1          = fields[6].GetUInt32();
-        creatureTemplate.Modelid2          = fields[7].GetUInt32();
-        creatureTemplate.Modelid3          = fields[8].GetUInt32();
-        creatureTemplate.Modelid4          = fields[9].GetUInt32();
+        for (uint8 i = 0; i < MAX_MODELS; ++i)
+            creatureTemplate.Modelid[i] = fields[6+i].GetUInt32();
         creatureTemplate.Name              = fields[10].GetString();
         creatureTemplate.SubName           = fields[11].GetString();
         creatureTemplate.IconName          = fields[12].GetString();
@@ -688,69 +676,22 @@ void ObjectMgr::CheckCreatureTemplate(CreatureTemplate const* cInfo)
     // used later for scale
     CreatureDisplayInfoEntry const* displayScaleEntry = NULL;
 
-    if (cInfo->Modelid1)
-    {
-        CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->Modelid1);
-        if (!displayEntry)
+    for (int i = 0; i < MAX_MODELS; ++i)
+        if (cInfo->Modelid[i])
         {
-            sLog->outErrorDb("Creature (Entry: %u) lists non-existing Modelid1 id (%u), this can crash the client.", cInfo->Entry, cInfo->Modelid1);
-            const_cast<CreatureTemplate*>(cInfo)->Modelid1 = 0;
+            CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->Modelid[i]);
+            if (!displayEntry)
+            {
+                sLog->outErrorDb("Creature (Entry: %u) lists non-existing Modelid%u id (%u), this can crash the client.", cInfo->Entry, i, cInfo->Modelid[i]);
+                const_cast<CreatureTemplate*>(cInfo)->Modelid[i] = 0;
+            }
+            else if (!displayScaleEntry)
+                displayScaleEntry = displayEntry;
+
+            CreatureModelInfo const* modelInfo = GetCreatureModelInfo(cInfo->Modelid[i]);
+            if (!modelInfo)
+                sLog->outErrorDb("No model data exist for `Modelid%u` = %u listed by creature (Entry: %u).", i, cInfo->Modelid[i], cInfo->Entry);
         }
-        else if (!displayScaleEntry)
-            displayScaleEntry = displayEntry;
-
-        CreatureModelInfo const* modelInfo = GetCreatureModelInfo(cInfo->Modelid1);
-        if (!modelInfo)
-            sLog->outErrorDb("No model data exist for `Modelid1` = %u listed by creature (Entry: %u).", cInfo->Modelid1, cInfo->Entry);
-    }
-
-    if (cInfo->Modelid2)
-    {
-        CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->Modelid2);
-        if (!displayEntry)
-        {
-            sLog->outErrorDb("Creature (Entry: %u) lists non-existing Modelid2 id (%u), this can crash the client.", cInfo->Entry, cInfo->Modelid2);
-            const_cast<CreatureTemplate*>(cInfo)->Modelid2 = 0;
-        }
-        else if (!displayScaleEntry)
-            displayScaleEntry = displayEntry;
-
-        CreatureModelInfo const* modelInfo = GetCreatureModelInfo(cInfo->Modelid2);;
-        if (!modelInfo)
-            sLog->outErrorDb("No model data exist for `Modelid2` = %u listed by creature (Entry: %u).", cInfo->Modelid2, cInfo->Entry);
-    }
-
-    if (cInfo->Modelid3)
-    {
-        CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->Modelid3);
-        if (!displayEntry)
-        {
-            sLog->outErrorDb("Creature (Entry: %u) lists non-existing Modelid3 id (%u), this can crash the client.", cInfo->Entry, cInfo->Modelid3);
-            const_cast<CreatureTemplate*>(cInfo)->Modelid3 = 0;
-        }
-        else if (!displayScaleEntry)
-            displayScaleEntry = displayEntry;
-
-        CreatureModelInfo const* modelInfo = GetCreatureModelInfo(cInfo->Modelid3);
-        if (!modelInfo)
-            sLog->outErrorDb("No model data exist for `Modelid3` = %u listed by creature (Entry: %u).", cInfo->Modelid3, cInfo->Entry);
-    }
-
-    if (cInfo->Modelid4)
-    {
-        CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->Modelid4);
-        if (!displayEntry)
-        {
-            sLog->outErrorDb("Creature (Entry: %u) lists non-existing Modelid4 id (%u), this can crash the client.", cInfo->Entry, cInfo->Modelid4);
-            const_cast<CreatureTemplate*>(cInfo)->Modelid4 = 0;
-        }
-        else if (!displayScaleEntry)
-            displayScaleEntry = displayEntry;
-
-        CreatureModelInfo const* modelInfo = GetCreatureModelInfo(cInfo->Modelid4);;
-        if (!modelInfo)
-            sLog->outErrorDb("No model data exist for `Modelid4` = %u listed by creature (Entry: %u).", cInfo->Modelid4, cInfo->Entry);
-    }
 
     if (!displayScaleEntry)
         sLog->outErrorDb("Creature (Entry: %u) does not have any existing display id in Modelid1/Modelid2/Modelid3/Modelid4.", cInfo->Entry);
@@ -1473,8 +1414,8 @@ void ObjectMgr::LoadCreatures()
 
     //                                                         0     1   2      3           4            5         6            7           8            9            10
     QueryResult result = WorldDatabase.Query("SELECT creature.guid, id, map, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, "
-    //         11            12        13        14           15          16       17        18              19                 20                  21
-        "currentwaypoint, curhealth, curmana, MovementType, spawnMask, phaseMask, event, pool_entry, creature.npcflag, creature.unit_flags, creature.dynamicflags "
+    //         11            12         13        14           15          16         17       18        19             20                  21                   22
+        "currentwaypoint, curhealth, curmana, DeathState, MovementType, spawnMask, phaseMask, event, pool_entry, creature.npcflag, creature.unit_flags, creature.dynamicflags "
         "FROM creature "
         "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
         "LEFT OUTER JOIN pool_creature ON creature.guid = pool_creature.guid");
@@ -1533,14 +1474,15 @@ void ObjectMgr::LoadCreatures()
         data.currentwaypoint= fields[11].GetUInt32();
         data.curhealth      = fields[12].GetUInt32();
         data.curmana        = fields[13].GetUInt32();
-        data.movementType   = fields[14].GetUInt8();
-        data.spawnMask      = fields[15].GetUInt8();
-        data.phaseMask      = fields[16].GetUInt16();
-        int16 gameEvent     = fields[17].GetInt16();
-        uint32 PoolId       = fields[18].GetUInt32();
-        data.npcflag        = fields[19].GetUInt32();
-        data.unit_flags     = fields[20].GetUInt32();
-        data.dynamicflags   = fields[21].GetUInt32();
+        data.is_dead        = fields[14].GetBool();
+        data.movementType   = fields[15].GetUInt8();
+        data.spawnMask      = fields[16].GetUInt8();
+        data.phaseMask      = fields[17].GetUInt16();
+        int16 gameEvent     = fields[18].GetInt16();
+        uint32 PoolId       = fields[19].GetUInt32();
+        data.npcflag        = fields[20].GetUInt32();
+        data.unit_flags     = fields[21].GetUInt32();
+        data.dynamicflags   = fields[22].GetUInt32();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if (!mapEntry)

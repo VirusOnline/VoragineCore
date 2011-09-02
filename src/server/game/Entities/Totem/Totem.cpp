@@ -69,27 +69,27 @@ void Totem::InitStats(uint32 duration)
         switch (m_owner->ToPlayer()->GetTeam())
         {
             case ALLIANCE:
-                display_id = cinfo->Modelid1;
+                display_id = cinfo->Modelid[0];
                 break;
             case HORDE:
-                if (cinfo->Modelid3)
-                    display_id = cinfo->Modelid3;
+                if (cinfo->Modelid[2])
+                    display_id = cinfo->Modelid[2];
                 else
-                    display_id = cinfo->Modelid1;
+                    display_id = cinfo->Modelid[0];
 
                 switch (((Player*)m_owner)->getRace())
                 {
                     case RACE_ORC:
-                        if (cinfo->Modelid2)
-                            display_id = cinfo->Modelid2;
+                        if (cinfo->Modelid[1])
+                            display_id = cinfo->Modelid[1];
                         else
-                            display_id = cinfo->Modelid1;
+                            display_id = cinfo->Modelid[0];
                         break;
                     case RACE_TROLL:
-                        if (cinfo->Modelid4)
-                            display_id = cinfo->Modelid4;
+                        if (cinfo->Modelid[3])
+                            display_id = cinfo->Modelid[3];
                         else
-                            display_id = cinfo->Modelid1;
+                            display_id = cinfo->Modelid[0];
                         break;
                     default:
                         break;

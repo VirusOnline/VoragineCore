@@ -76,6 +76,7 @@ enum CreatureFlagsExtra
 #endif
 
 #define MAX_KILL_CREDIT 2
+#define MAX_MODELS      4
 #define CREATURE_REGEN_INTERVAL 2 * IN_MILLISECONDS
 
 #define MAX_CREATURE_QUEST_ITEMS 6
@@ -88,10 +89,7 @@ struct CreatureTemplate
     uint32  Entry;
     uint32  DifficultyEntry[MAX_DIFFICULTY - 1];
     uint32  KillCredit[MAX_KILL_CREDIT];
-    uint32  Modelid1;
-    uint32  Modelid2;
-    uint32  Modelid3;
-    uint32  Modelid4;
+    uint32  Modelid[MAX_MODELS];
     std::string  Name;
     std::string  SubName;
     std::string  IconName;

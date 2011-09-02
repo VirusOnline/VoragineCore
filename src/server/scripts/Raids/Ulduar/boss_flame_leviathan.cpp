@@ -589,7 +589,7 @@ class boss_flame_leviathan_seat : public CreatureScript
             {
                 ASSERT(vehicle);
                 me->SetReactState(REACT_PASSIVE);
-                me->SetDisplayId(me->GetCreatureInfo()->Modelid2);
+                me->SetDisplayId(me->GetCreatureInfo()->Modelid[1]);
                 instance = creature->GetInstanceScript();
             }
 

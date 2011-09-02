@@ -1645,7 +1645,7 @@ Corpse.Decay.WORLDBOSS = 3600
 Rate.Corpse.Decay.Looted = 0.5
 
 #
-# Rate.Creature.Normal.Damage//BURASI
+# Rate.Creature.Normal.Damage
 # Rate.Creature.Elite.Elite.Damage
 # Rate.Creature.Elite.RARE.Damage
 # Rate.Creature.Elite.RAREELITE.Damage
@@ -1665,7 +1665,7 @@ Rate.Creature.Elite.RAREELITE.Damage = 1
 Rate.Creature.Elite.WORLDBOSS.Damage = 1
 
 #
-# Rate.Creature.Normal.SpellDamage//BURASI
+# Rate.Creature.Normal.SpellDamage
 # Rate.Creature.Elite.Elite.SpellDamage
 # Rate.Creature.Elite.RARE.SpellDamage
 # Rate.Creature.Elite.RAREELITE.SpellDamage
@@ -1684,7 +1684,7 @@ Rate.Creature.Elite.RAREELITE.SpellDamage = 1
 Rate.Creature.Elite.WORLDBOSS.SpellDamage = 1
 
 #
-# Rate.Creature.Normal.HP//BURASI
+# Rate.Creature.Normal.HP
 # Rate.Creature.Elite.Elite.HP
 # Rate.Creature.Elite.RARE.HP
 # Rate.Creature.Elite.RAREELITE.HP

@@ -191,12 +191,10 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket & recv_data)
         data << uint32(ci->type);                           // CreatureType.dbc
         data << uint32(ci->family);                         // CreatureFamily.dbc
         data << uint32(ci->rank);                           // Creature Rank (elite, boss, etc)
-        data << uint32(ci->KillCredit[0]);                  // Kill Credit
-        data << uint32(ci->KillCredit[1]);                  // Kill Credit
-        data << uint32(ci->Modelid1);                       // Modelid1
-        data << uint32(ci->Modelid2);                       // Modelid2
-        data << uint32(ci->Modelid3);                       // Modelid3
-        data << uint32(ci->Modelid4);                       // Modelid4
+        for (int i = 0; i < MAX_KILL_CREDIT; ++i)
+            data << uint32(ci->KillCredit[i]);                  // Kill Credits
+        for (int i = 0; i < MAX_MODELS; ++i)
+            data << uint32(ci->Modelid[i]);                     // Modelid1 -  Modelid2 - Modelid3 - Modelid4
         data << float(ci->ModHealth);                       // dmg/hp modifier
         data << float(ci->ModMana);                         // dmg/mana modifier
         data << uint8(ci->RacialLeader);

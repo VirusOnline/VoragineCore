@@ -93,20 +93,19 @@ uint32 CreatureTemplate::GetRandomValidModelId() const
     uint8 c = 0;
     uint32 modelIDs[4];
 
-    if (Modelid1) modelIDs[c++] = Modelid1;
-    if (Modelid2) modelIDs[c++] = Modelid2;
-    if (Modelid3) modelIDs[c++] = Modelid3;
-    if (Modelid4) modelIDs[c++] = Modelid4;
+    for (int i = 0; i < MAX_MODELS; ++i)
+        if (Modelid[i])
+            modelIDs[c++] = Modelid[i];
 
     return ((c>0) ? modelIDs[urand(0, c-1)] : 0);
 }
 
 uint32 CreatureTemplate::GetFirstValidModelId() const
 {
-    if (Modelid1) return Modelid1;
-    if (Modelid2) return Modelid2;
-    if (Modelid3) return Modelid3;
-    if (Modelid4) return Modelid4;
+    for (int i = 0; i < MAX_MODELS; ++i)
+        if (Modelid[i])
+            return Modelid[i];
+
     return 0;
 }
 
@@ -1089,8 +1088,8 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask)
     CreatureTemplate const *cinfo = GetCreatureInfo();
     if (cinfo)
     {
-        if (displayId == cinfo->Modelid1 || displayId == cinfo->Modelid2 ||
-            displayId == cinfo->Modelid3 || displayId == cinfo->Modelid4)
+        if (displayId == cinfo->Modelid[0] || displayId == cinfo->Modelid[1] ||
+            displayId == cinfo->Modelid[2] || displayId == cinfo->Modelid[3])
             displayId = 0;
 
         if (npcflag == cinfo->npcflag)
@@ -1176,10 +1175,7 @@ void Creature::SelectLevel(const CreatureTemplate *cinfo)
     CreatureBaseStats const* stats = sObjectMgr->GetCreatureStats(entry, level);
 
     // health
-    float healthmod = _GetHealthMod(rank);
-
-    uint32 basehp = stats->GenerateHealth(cinfo);
-    uint32 health = uint32(basehp * healthmod);
+    uint32 health = stats->GenerateHealth(cinfo);
 
     SetCreateHealth(health);
     SetMaxHealth(health);

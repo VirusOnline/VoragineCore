@@ -412,10 +412,8 @@ public:
         const_cast<CreatureTemplate*>(cInfo)->DifficultyEntry[2] = fields[2].GetUInt32();
         const_cast<CreatureTemplate*>(cInfo)->KillCredit[0] = fields[3].GetUInt32();
         const_cast<CreatureTemplate*>(cInfo)->KillCredit[1] = fields[4].GetUInt32();
-        const_cast<CreatureTemplate*>(cInfo)->Modelid1 = fields[5].GetUInt32();
-        const_cast<CreatureTemplate*>(cInfo)->Modelid2 = fields[6].GetUInt32();
-        const_cast<CreatureTemplate*>(cInfo)->Modelid3 = fields[7].GetUInt32();
-        const_cast<CreatureTemplate*>(cInfo)->Modelid4 = fields[8].GetUInt32();
+        for (int i = 0; i < MAX_MODELS; ++i)
+            const_cast<CreatureTemplate*>(cInfo)->Modelid[i] = fields[5+i].GetUInt32();
         const_cast<CreatureTemplate*>(cInfo)->Name = fields[9].GetString();
         const_cast<CreatureTemplate*>(cInfo)->SubName = fields[10].GetString();
         const_cast<CreatureTemplate*>(cInfo)->IconName = fields[11].GetString();

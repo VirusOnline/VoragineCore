@@ -173,7 +173,7 @@ class boss_razorscale_controller : public CreatureScript
         {
             boss_razorscale_controllerAI(Creature* creature) : BossAI(creature, DATA_RAZORSCALE_CONTROL)
             {
-                me->SetDisplayId(me->GetCreatureInfo()->Modelid2);
+                me->SetDisplayId(me->GetCreatureInfo()->Modelid[1]);
             }
 
             void Reset()
@@ -793,9 +793,9 @@ public:
 
     struct npc_devouring_flameAI : public Scripted_NoMovementAI
     {
-            npc_devouring_flameAI(Creature* creature) : Scripted_NoMovementAI(creature)
+        npc_devouring_flameAI(Creature* creature) : Scripted_NoMovementAI(creature)
         {
-                me->SetDisplayId(me->GetCreatureInfo()->Modelid2);
+            me->SetDisplayId(me->GetCreatureInfo()->Modelid[1]);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
         }
 
