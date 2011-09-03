@@ -284,7 +284,6 @@ typedef UNORDERED_MAP<uint32, CreatureAddon> CreatureAddonContainer;
 
 struct CreatureModelInfo
 {
-    uint32 modelid;
     float bounding_radius;
     float combat_reach;
     uint8 gender;

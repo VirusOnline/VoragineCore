@@ -1341,16 +1341,14 @@ void GameEventMgr::ChangeEquipOrModel(int16 event_id, bool activate)
             if (data2 && activate)
             {
                 CreatureTemplate const *cinfo = sObjectMgr->GetCreatureTemplate(data2->id);
-                uint32 display_id = sObjectMgr->ChooseDisplayId(0,cinfo,data2);
-                CreatureModelInfo const *minfo = sObjectMgr->GetCreatureModelRandomGender(&display_id);
-                if (minfo)
-                    display_id = minfo->modelid;
+                uint32 displayID = sObjectMgr->ChooseDisplayId(0,cinfo,data2);
+                sObjectMgr->GetCreatureModelRandomGender(&displayID);
 
                 if (data2->equipmentId == 0)
                     itr->second.equipement_id_prev = cinfo->equipmentId;
                 else if (data2->equipmentId != -1)
                     itr->second.equipement_id_prev = data->equipmentId;
-                itr->second.modelid_prev = display_id;
+                itr->second.modelid_prev = displayID;
             }
         }
         // now last step: put in data

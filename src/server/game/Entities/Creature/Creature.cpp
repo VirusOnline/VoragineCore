@@ -314,8 +314,6 @@ bool Creature::InitEntry(uint32 Entry, uint32 /*team*/, const CreatureData *data
         return false;
     }
 
-    displayID = minfo->modelid;                            // it can be different (for another gender)
-
     SetDisplayId(displayID);
     SetNativeDisplayId(displayID);
     SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
@@ -790,8 +788,6 @@ bool Creature::Create(uint32 guidlow, Map *map, uint32 phaseMask, uint32 Entry, 
     CreatureModelInfo const *minfo = sObjectMgr->GetCreatureModelRandomGender(&displayID);
     if (minfo && !isTotem())                               // Cancel load if no model defined or if totem
     {
-        displayID = minfo->modelid;                // it can be different (for another gender)
-
         SetDisplayId(displayID);
         SetNativeDisplayId(displayID);
         SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
@@ -1658,8 +1654,6 @@ void Creature::Respawn(bool force)
         CreatureModelInfo const *minfo = sObjectMgr->GetCreatureModelRandomGender(&displayID);
         if (minfo)                                             // Cancel load if no model defined
         {
-            displayID = minfo->modelid;                // it can be different (for another gender)
-
             SetDisplayId(displayID);
             SetNativeDisplayId(displayID);
             SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);

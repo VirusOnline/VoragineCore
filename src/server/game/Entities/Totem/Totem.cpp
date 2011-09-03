@@ -62,34 +62,33 @@ void Totem::InitStats(uint32 duration)
     CreatureTemplate const *cinfo = GetCreatureInfo();
     if (m_owner->GetTypeId() == TYPEID_PLAYER && cinfo)
     {
-        uint32 display_id = sObjectMgr->ChooseDisplayId(m_owner->ToPlayer()->GetTeam(), cinfo);
-        CreatureModelInfo const *minfo = sObjectMgr->GetCreatureModelRandomGender(&display_id);
-        if (minfo)
-            display_id = minfo->modelid;
+        uint32 displayID = sObjectMgr->ChooseDisplayId(m_owner->ToPlayer()->GetTeam(), cinfo);
+        sObjectMgr->GetCreatureModelRandomGender(&displayID);
+
         switch (m_owner->ToPlayer()->GetTeam())
         {
             case ALLIANCE:
-                display_id = cinfo->Modelid[0];
+                displayID = cinfo->Modelid[0];
                 break;
             case HORDE:
                 if (cinfo->Modelid[2])
-                    display_id = cinfo->Modelid[2];
+                    displayID = cinfo->Modelid[2];
                 else
-                    display_id = cinfo->Modelid[0];
+                    displayID = cinfo->Modelid[0];
 
                 switch (((Player*)m_owner)->getRace())
                 {
                     case RACE_ORC:
                         if (cinfo->Modelid[1])
-                            display_id = cinfo->Modelid[1];
+                            displayID = cinfo->Modelid[1];
                         else
-                            display_id = cinfo->Modelid[0];
+                            displayID = cinfo->Modelid[0];
                         break;
                     case RACE_TROLL:
                         if (cinfo->Modelid[3])
-                            display_id = cinfo->Modelid[3];
+                            displayID = cinfo->Modelid[3];
                         else
-                            display_id = cinfo->Modelid[0];
+                            displayID = cinfo->Modelid[0];
                         break;
                     default:
                         break;
@@ -98,7 +97,7 @@ void Totem::InitStats(uint32 duration)
             default:
                 break;
         }
-        SetDisplayId(display_id);
+        SetDisplayId(displayID);
     }
 
     // Get spell casted by totem
