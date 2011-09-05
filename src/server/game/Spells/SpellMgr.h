@@ -518,6 +518,11 @@ inline bool IsChanneledSpell(SpellEntry const* spellInfo)
     return (spellInfo->AttributesEx & (SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2));
 }
 
+inline bool IsBreakingStealth(SpellEntry const* spellInfo)
+{
+    return !(spellInfo->AttributesEx & SPELL_ATTR1_NOT_BREAK_STEALTH);
+}
+
 inline bool NeedsComboPoints(SpellEntry const* spellInfo)
 {
     return (spellInfo->AttributesEx & (SPELL_ATTR1_REQ_COMBO_POINTS1 | SPELL_ATTR1_REQ_COMBO_POINTS2));

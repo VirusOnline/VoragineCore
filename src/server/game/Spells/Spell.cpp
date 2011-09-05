@@ -351,6 +351,8 @@ void SpellCastTargets::ModDst(Position const& pos)
 
 void SpellCastTargets::SetGOTarget(GameObject* target)
 {
+    if (!target)
+        return;
     m_GOTarget = target;
     m_GOTargetGUID = target->GetGUID();
     m_targetMask |= TARGET_FLAG_GAMEOBJECT;
@@ -1302,6 +1304,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
 
         int32 gain = caster->HealBySpell(unitTarget, m_spellInfo, addhealth, crit);
         unitTarget->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f, m_spellInfo);
+        m_healing = gain;
     }
     // Do damage and triggers
     else if (m_damage > 0)
@@ -1330,9 +1333,6 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
 
         caster->DealSpellDamage(&damageInfo, true);
 
-        // Used in spell scripts
-        m_final_damage = damageInfo.damage;
-
         // Haunt
         SpellClassOptionsEntry const* flag = m_spellInfo->GetSpellClassOptions();
         if (m_spellInfo->GetSpellFamilyName() == SPELLFAMILY_WARLOCK && flag->SpellFamilyFlags[1] & 0x40000 && m_spellAura && m_spellAura->GetEffect(1))
@@ -1340,6 +1340,8 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
             AuraEffect * aurEff = m_spellAura->GetEffect(1);
             aurEff->SetAmount(CalculatePctU(aurEff->GetAmount(), damageInfo.damage));
         }
+        // Used in spell scripts
+        m_final_damage = damageInfo.damage;
     }
     // Passive spell hits/misses or active spells only misses (only triggers)
     else
@@ -1392,18 +1394,15 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
                     p->CastedCreatureOrGO(spellHitTarget->GetEntry(), spellHitTarget->GetGUID(), m_spellInfo->Id);
         }
 
-        if (m_caster && m_caster->GetTypeId() == TYPEID_UNIT && m_caster->ToCreature()->IsAIEnabled)
-            m_caster->ToCreature()->AI()->SpellHitTarget(spellHitTarget, m_spellInfo);
-
+        if (m_caster)
+            if (m_caster->GetTypeId() == TYPEID_UNIT && m_caster->ToCreature()->IsAIEnabled)
+                m_caster->ToCreature()->AI()->SpellHitTarget(spellHitTarget, m_spellInfo);
         // Needs to be called after dealing damage/healing to not remove breaking on damage auras
         DoTriggersOnSpellHit(spellHitTarget, mask);
 
         // if target is fallged for pvp also flag caster if a player
-        if (unit->IsPvP())
-        {
-            if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        if (unit->IsPvP() && m_caster->GetTypeId() == TYPEID_PLAYER)
             m_caster->ToPlayer()->UpdatePvP(true);
-        }
 
         CallScriptAfterHitHandlers();
     }
@@ -1510,14 +1509,19 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
 
         if (m_originalCaster)
         {
+            bool refresh = false;
             m_spellAura = Aura::TryRefreshStackOrCreate(aurSpellInfo, effectMask, unit,
-                m_originalCaster, (aurSpellInfo == m_spellInfo)? &m_spellValue->EffectBasePoints[0] : &basePoints[0], m_CastItem);
+                m_originalCaster, (aurSpellInfo == m_spellInfo)? &m_spellValue->EffectBasePoints[0] : &basePoints[0], m_CastItem, 0, &refresh);
             if (m_spellAura)
             {
                 // Set aura stack amount to desired value
                 if (m_spellValue->AuraStackAmount > 1)
-                    m_spellAura->SetStackAmount(m_spellValue->AuraStackAmount);
-
+                {
+                    if (!refresh)
+                        m_spellAura->SetStackAmount(m_spellValue->AuraStackAmount);
+                    else
+                        m_spellAura->ModStackAmount(m_spellValue->AuraStackAmount);
+                }
                 // Now Reduce spell duration using data received at spell hit
                 int32 duration = m_spellAura->GetMaxDuration();
                 int32 limitduration = GetDiminishingReturnsLimitDuration(m_diminishGroup, aurSpellInfo);
@@ -1527,34 +1531,38 @@ SpellMissInfo Spell::DoSpellHitOnUnit(Unit *unit, const uint32 effectMask, bool 
                 if (diminishMod == 0.0f)
                 {
                     m_spellAura->Remove();
-                    return SPELL_MISS_IMMUNE;
+                    bool found = false;
+                    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+                        if (effectMask & (1 << i) && m_spellInfo->GetSpellEffectIdByIndex(i) != SPELL_EFFECT_APPLY_AURA)
+                            found = true;
+                    if (!found)
+                        return SPELL_MISS_IMMUNE;
                 }
-
-                ((UnitAura*)m_spellAura)->SetDiminishGroup(m_diminishGroup);
-
-                bool positive = IsPositiveSpell(m_spellAura->GetId());
-                AuraApplication * aurApp = m_spellAura->GetApplicationOfTarget(m_originalCaster->GetGUID());
-                if (aurApp)
-                    positive = aurApp->IsPositive();
-
-                duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive);
-
-                // Haste modifies duration of channeled spells
-                if (IsChanneledSpell(m_spellInfo))
+                else
                 {
-                    if (m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
-                        m_originalCaster->ModSpellCastTime(aurSpellInfo, duration, this);
-                }
-                // and duration of auras affected by SPELL_AURA_PERIODIC_HASTE
-                else if (m_originalCaster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, aurSpellInfo) || m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
-                    duration = int32(duration * m_originalCaster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+                    ((UnitAura*)m_spellAura)->SetDiminishGroup(m_diminishGroup);
+                    bool positive = IsPositiveSpell(m_spellAura->GetId());
+                    AuraApplication* aurApp = m_spellAura->GetApplicationOfTarget(m_originalCaster->GetGUID());
+                    if (aurApp)
+                        positive = aurApp->IsPositive();
+                    duration = m_originalCaster->ModSpellDuration(aurSpellInfo, unit, duration, positive);
 
-                if (duration != m_spellAura->GetMaxDuration())
-                {
-                    m_spellAura->SetMaxDuration(duration);
-                    m_spellAura->SetDuration(duration);
+                    // Haste modifies duration of channeled spells
+                    if (IsChanneledSpell(m_spellInfo))
+                    {
+                        if (m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
+                            m_originalCaster->ModSpellCastTime(aurSpellInfo, duration, this);
+                    }
+                    // and duration of auras affected by SPELL_AURA_PERIODIC_HASTE
+                    else if (m_originalCaster->HasAuraTypeWithAffectMask(SPELL_AURA_PERIODIC_HASTE, aurSpellInfo) || m_spellInfo->AttributesEx5 & SPELL_ATTR5_HASTE_AFFECT_DURATION)
+                        duration = int32(duration * m_originalCaster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+                    if (duration != m_spellAura->GetMaxDuration())
+                    {
+                        m_spellAura->SetMaxDuration(duration);
+                        m_spellAura->SetDuration(duration);
+                    }
+                    m_spellAura->_RegisterForTargets();
                 }
-                m_spellAura->_RegisterForTargets();
             }
         }
     }
@@ -4808,12 +4816,8 @@ void Spell::HandleEffects(Unit *pUnitTarget, Item *pItemTarget, GameObject *pGOT
     bool preventDefault = CallScriptEffectHandlers((SpellEffIndex)i);
 
     if (!Effect)
-    {
         if (!preventDefault && eff < TOTAL_SPELL_EFFECTS)
-        {
             (this->*SpellEffects[eff])(Effect);
-        }
-    }
 }
 
 SpellCastResult Spell::CheckCast(bool strict)

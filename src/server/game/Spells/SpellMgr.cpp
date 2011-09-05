@@ -388,27 +388,24 @@ uint32 GetDispelChance(Unit* auraCaster, Unit* target, uint32 spellId, bool offe
 
 uint32 GetSpellCastTime(SpellEntry const* spellInfo, Spell* spell)
 {
-    SpellCastTimesEntry const* spellCastTimeEntry = sSpellCastTimesStore.LookupEntry(spellInfo->CastingTimeIndex);
-
+    SpellCastTimesEntry const* CastTimeEntry = spellInfo->CastingTimeIndex ? sSpellCastTimesStore.LookupEntry(spellInfo->CastingTimeIndex) : NULL;
     // not all spells have cast time index and this is all is pasiive abilities
-    if (!spellCastTimeEntry)
+    if (!CastTimeEntry)
         return 0;
 
-    int32 castTime = spellCastTimeEntry->CastTime;
+    int32 castTime = CastTimeEntry->CastTime;
 
     if (spell && spell->GetCaster())
     {
         SpellScaling values(spell->GetCaster()->getLevel(), spell->GetSpellInfo());
         if(values.canScale)
-        {
             castTime = values.cast;
-        }
     }
     
     if (spell && spell->GetCaster())
         spell->GetCaster()->ModSpellCastTime(spellInfo, castTime, spell);
 
-    if (spellInfo->Attributes & SPELL_ATTR0_REQ_AMMO && (!spell || !(spell->IsAutoRepeat())))
+    if (spellInfo->Attributes & SPELL_ATTR0_REQ_AMMO && (!IsAutoRepeatRangedSpell(spellInfo)))
         castTime += 500;
 
     return (castTime > 0) ? uint32(castTime) : 0;
