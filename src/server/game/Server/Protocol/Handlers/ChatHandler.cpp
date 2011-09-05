@@ -557,7 +557,7 @@ namespace Voragine
             uint32        i_emote_num;
             Unit const*   i_target;
     };
-}                                                           // namespace Trillium
+}                                                           // namespace Voragine
 
 void WorldSession::HandleTextEmoteOpcode(WorldPacket & recv_data)
 {
