@@ -478,7 +478,7 @@ class Spell
 
         typedef std::set<Aura*> UsedSpellMods;
 
-        Spell(Unit* Caster, SpellEntry const *info, bool triggered, uint64 originalCasterGUID = 0, bool skipCheck = false, bool castedClientside = false);
+        Spell(Unit* caster, SpellEntry const *info, TriggerCastFlags triggerFlags, uint64 originalCasterGUID = 0, bool skipCheck = false);
         ~Spell();
 
         void prepare(SpellCastTargets const* targets, AuraEffect const* triggeredByAura = NULL);
@@ -578,9 +578,9 @@ class Spell
         {
             return m_spellInfo->Attributes & SPELL_ATTR0_ON_NEXT_SWING;
         }
-        bool IsTriggered() const {return m_IsTriggeredSpell;};
+        bool IsTriggered() const {return _triggeredCastFlags & TRIGGERED_FULL_MASK;};
         bool IsChannelActive() const { return m_caster->GetUInt32Value(UNIT_CHANNEL_SPELL) != 0; }
-        bool IsAutoActionResetSpell() const { return !m_IsTriggeredSpell && (m_spellInfo->GetInterruptFlags() & SPELL_INTERRUPT_FLAG_AUTOATTACK);  }
+        bool IsAutoActionResetSpell() const { return !IsTriggered() && (m_spellInfo->GetInterruptFlags() & SPELL_INTERRUPT_FLAG_AUTOATTACK);  }
 
         bool IsDeletable() const { return !m_referencedFromCurrentSpell && !m_executedCurrently; }
         void SetReferencedFromCurrent(bool yes) { m_referencedFromCurrentSpell = yes; }
@@ -785,8 +785,7 @@ class Spell
         uint32 m_spellState;
         uint32 m_timer;
 
-        bool m_IsTriggeredSpell;
-        bool m_castedClientside;
+        TriggerCastFlags _triggeredCastFlags;
 
         // if need this can be replaced by Aura copy
         // we can't store original aura link to prevent access to deleted auras

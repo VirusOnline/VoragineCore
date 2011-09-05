@@ -333,7 +333,7 @@ void WorldSession::HandlePetActionHelper(Unit *pet, uint64 guid1, uint16 spellid
                 pet->GetCharmInfo()->SetIsFollowing(false);
             }
 
-            Spell* spell = new Spell(pet, spellInfo, false);
+            Spell* spell = new Spell(pet, spellInfo, TRIGGERED_NONE);
 
             SpellCastResult result = spell->CheckPetCast(unit_target);
 
@@ -788,7 +788,7 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
 
     caster->ClearUnitState(UNIT_STAT_FOLLOW);
 
-    Spell* spell = new Spell(caster, spellInfo, false);
+    Spell* spell = new Spell(caster, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = castCount;                    // probably pending spell cast
     spell->m_targets = targets;
 

@@ -403,7 +403,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
                 return;
             }
 
-            my_spell = new Spell(_player, spellEntry, true);
+            my_spell = new Spell(_player, spellEntry, TRIGGERED_FULL_MASK);
             my_spell->m_CastItem = castItem;
             my_targets.SetTradeItemTarget(_player);
             my_spell->m_targets = my_targets;
@@ -438,7 +438,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
                 return;
             }
 
-            his_spell = new Spell(trader, spellEntry, true);
+            his_spell = new Spell(trader, spellEntry, TRIGGERED_FULL_MASK);
             his_spell->m_CastItem = castItem;
             his_targets.SetTradeItemTarget(trader);
             his_spell->m_targets = his_targets;

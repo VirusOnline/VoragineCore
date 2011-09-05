@@ -1935,7 +1935,7 @@ void Spell::EffectDummy(SpellEffectEntry const* effect)
         }
 
         targets.SetUnitTarget(unitTarget);
-        Spell* spell = new Spell(m_caster, spellInfo, triggered, m_originalCasterGUID, true);
+        Spell* spell = new Spell(m_caster, spellInfo, triggered ? TRIGGERED_FULL_MASK : TRIGGERED_NONE, m_originalCasterGUID, true);
         if (bp) spell->SetSpellValue(SPELLVALUE_BASE_POINT0, bp);
         spell->prepare(&targets);
     }
@@ -4231,7 +4231,7 @@ void Spell::EffectEnchantItemTmp(SpellEffectEntry const* effect)
             {
                 if (item->IsFitToSpellRequirements(m_spellInfo))
                 {
-                    Spell *spell = new Spell(m_caster, spellInfo, true);
+                    Spell* spell = new Spell(m_caster, spellInfo, TRIGGERED_FULL_MASK);
                     SpellCastTargets targets;
                     targets.SetItemTarget(item);
                     spell->prepare(&targets);
@@ -6366,7 +6366,7 @@ void Spell::EffectStuck(SpellEffectEntry const* /*effect*/)
     SpellEntry const *spellInfo = sSpellStore.LookupEntry(8690);
     if (!spellInfo)
         return;
-    Spell spell(pTarget, spellInfo, true, 0);
+    Spell spell(pTarget, spellInfo, TRIGGERED_FULL_MASK);
     spell.SendSpellCooldown();
 }
 

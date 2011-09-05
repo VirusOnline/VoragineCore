@@ -8901,7 +8901,7 @@ void Player::CastItemUseSpell(Item *item, SpellCastTargets const& targets, uint8
             return;
         }
 
-        Spell* spell = new Spell(this, spellInfo, false);
+        Spell* spell = new Spell(this, spellInfo, TRIGGERED_NONE);
         spell->m_CastItem = item;
         spell->m_cast_count = cast_count;                   //set count of casts
         spell->SetSpellValue(SPELLVALUE_BASE_POINT0, learning_spell_id);
@@ -8932,7 +8932,7 @@ void Player::CastItemUseSpell(Item *item, SpellCastTargets const& targets, uint8
             continue;
         }
 
-        Spell* spell = new Spell(this, spellInfo, (count > 0));
+        Spell* spell = new Spell(this, spellInfo, (count > 0) ? TRIGGERED_FULL_MASK : TRIGGERED_NONE);
         spell->m_CastItem = item;
         spell->m_cast_count = cast_count;                   // set count of casts
         spell->m_glyphIndex = glyphIndex;                   // glyph index
@@ -8960,7 +8960,7 @@ void Player::CastItemUseSpell(Item *item, SpellCastTargets const& targets, uint8
                 continue;
             }
 
-            Spell* spell = new Spell(this, spellInfo, (count > 0));
+            Spell* spell = new Spell(this, spellInfo, (count > 0) ? TRIGGERED_FULL_MASK : TRIGGERED_NONE);
             spell->m_CastItem = item;
             spell->m_cast_count = cast_count;               // set count of casts
             spell->m_glyphIndex = glyphIndex;               // glyph index
@@ -17089,7 +17089,12 @@ void Player::SetHomebind(WorldLocation const& /*loc*/, uint32 /*area_id*/)
     // update sql homebind
     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SET_PLAYER_HOMEBIND);
     stmt->setUInt16(0, m_homebindMapId);
-    stmt->setUInt16(1, m_homebindAreaId);    stmt->setFloat (2, m_homebindX);    stmt->setFloat (3, m_homebindY);    stmt->setFloat (4, m_homebindZ);    stmt->setUInt32(5, GetGUIDLow());    CharacterDatabase.Execute(stmt);}
+    stmt->setUInt16(1, m_homebindAreaId);
+    stmt->setFloat (2, m_homebindX);
+    stmt->setFloat (3, m_homebindY);
+    stmt->setFloat (4, m_homebindZ);
+    stmt->setUInt32(5, GetGUIDLow());
+    CharacterDatabase.Execute(stmt);}
 
 uint32 Player::GetUInt32ValueFromArray(Tokens const& data, uint16 index)
 {
@@ -17139,7 +17144,10 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // check if the character's account in the db and the logged in account match.
     // player should be able to load/delete character only with correct account!
     if (accountid != GetSession()->GetAccountId())
-    {        sLog->outError("Player (GUID: %u) loading from wrong account (is: %u, should be: %u)", guid, GetSession()->GetAccountId(), accountid);        return false;    }
+    {
+        sLog->outError("Player (GUID: %u) loading from wrong account (is: %u, should be: %u)", guid, GetSession()->GetAccountId(), accountid);
+        return false;
+    }
     if (holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOADBANNED))
     {
         sLog->outError("Player (GUID: %u) is banned, can't load.", guid);
@@ -17161,7 +17169,13 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // overwrite possible wrong/corrupted guid
     SetUInt64Value(OBJECT_FIELD_GUID, MAKE_NEW_GUID(guid, 0, HIGHGUID_PLAYER));
 
-    uint8 Gender = fields[5].GetUInt8(); // gender    if (!IsValidGender(Gender))    {        sLog->outError("Player (GUID: %u) has wrong gender (%hu), can't be loaded.", guid, Gender);        return false;    }    // overwrite some data fields
+    uint8 Gender = fields[5].GetUInt8(); // gender
+    if (!IsValidGender(Gender))
+    {
+        sLog->outError("Player (GUID: %u) has wrong gender (%hu), can't be loaded.", guid, Gender);
+        return false;
+    }
+    // overwrite some data fields
     uint32 bytes0 = 0;
     bytes0 |= fields[3].GetUInt8();                         // race
     bytes0 |= fields[4].GetUInt8() << 8;                    // class

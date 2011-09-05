@@ -683,7 +683,7 @@ class spell_rotface_unstable_ooze_explosion : public SpellScriptLoader
                 // let Rotface handle the cast - caster dies before this executes
                 if (InstanceScript* script = GetTargetUnit()->GetInstanceScript())
                     if (Creature* rotface = script->instance->GetCreature(script->GetData64(DATA_ROTFACE)))
-                        rotface->CastSpell(x, y, z, triggered_spell_id, true, NULL, NULL, GetCaster()->GetGUID(), GetTargetUnit());
+                        rotface->CastSpell(x, y, z, triggered_spell_id, true, NULL, NULL, GetCaster()->GetGUID());
             }
 
             void Register()
