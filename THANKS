@@ -4,7 +4,7 @@ VoragineCore is a derivation/rewrite of TrinityCore, with portions of almost
 all the projects of wow development (public ones).
 
 We want to thanks to our dedicated Team: Kitiara, Icerobert, Apocalipsys,
-Carlosx, Arnauec, Abran.
+Carlosx, Arnauec, Abran, Manu, GoFocus, Ghostcrawler, Krill Kielo, Extasy.
 
 And thanks to our Contributor Squeezee.
 
@@ -14,11 +14,17 @@ We want to thank to TrinityCore project, because they are a good example
 to follow of a stable and well worked project for free, we want to continue his
 legacy but in wow Cataclysm.
 
-We want to give a special thanks to the skyfire project, for the part of our core
-related to the goblins ang worgens and some other minor things.
+We want to give a special thanks to the CactusEMU project, because his exelent work
+creating the base of cataclysm emus.
 
-We want to gine a special thanks to Arcemu, we have adapted his spell_proc system
+We want to give a special thanks to the Trillium and Arkania project, Because some big
+fixes about adaptation of TC to cataclysm.
+
+We want to give a special thanks to Arcemu, we have adapted his spell_proc system
 and in some time we will implement a lua system more like the old ascent lua system.
+
+We want to give a special thanks to the Skyfire project, for the part of our core
+related to the goblins ang worgens and some other minor things.
 
 We want to thank all the collaborators of the project, the people in
 forums and all the commiters.
@@ -84,6 +90,12 @@ spgm, Dakeyras, sombre88, 19Maxx83, moriquendu, Ille, breakerfly,
 zthoreen, clement.roussel, p.alexej, Ceris, Nayre, Kiper, announce, thmarth,
 Ner'zhul, DarkXuan, Cearey, n0n4m3, fabian, scruffy, AriDEV, Chameleon, TheHacker66, 
 Dvlpr, Hammerstorm, XEQT, Cristal, Cerey, Keany, Burnham, Misimouse, Boomy,
-Ahlmo, Saifii, alterego, moviledev. bootz, radek, yezi, Locknes, myxbing,
+Ahlmo, Saifii, alterego, mobiledev. Bootz, radek, yezi, Locknes, myxbing,
 sergewinters, Venugh, W1nst0n.
 And ANYONE ELSE not on this list. Thank You.
+
+Our intend is to make the best cataclysm server, nothing more.
+A lot of people supported the wow emulations before that means the core is not came from A PERSON.
+Some codes came from some persons but they did their works in GNU Public License.
+According to this "This program is FREE(!!) software; you can REDISTRIBUTE(!!) it and/or MODIFY(!!)
+it under the terms of the GNU General Public License ....".
