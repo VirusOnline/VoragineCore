@@ -20,9 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-/// \addtogroup u2w
-/// @{
-/// \file
+// \addtogroup u2w
+// @{
+// \file
 
 #ifndef _OPCODES_H
 #define _OPCODES_H
@@ -36,8 +36,10 @@
 #include "WorldSession.h"
 
 #define OPCODE_NOT_FOUND 0x10000
+#define EXIST_OPC_LIST 5000 // Record for maximum 5000 opcodes
+#define EXIST_OPC_OPTION 2
 
-/// List of Opcodes
+// List of Opcodes
 enum Opcodes
 {
     MSG_OPCODE_UNKNOWN,
@@ -1326,7 +1328,7 @@ NOTES:
 */
 extern void InitOpcodeTable();
 
-/// Player state
+// Player state
 enum SessionStatus
 {
     STATUS_AUTHED = 0,                                      // Player authenticated (_player == NULL, m_playerRecentlyLogout = false or will be reset before handler call, m_GUID have garbage)
@@ -1355,14 +1357,26 @@ struct OpcodeHandler
     void (WorldSession::*handler)(WorldPacket& recvPacket);
 };
 
+struct ExistOpcodeHandler
+{
+    uint16 number;
+    Opcodes enumId;
+    const char* namefromenumId;
+    SessionStatus status;
+    PacketProcessing packetProcessing;
+    void (WorldSession::*handler)(WorldPacket& recvPacket);
+};
+
 #define MAX_MSG_TYPES 0xFFFF
 extern OpcodeHandler opcodeTable[MAX_MSG_TYPES];
 extern uint16 opcodesEnumToNumber[NUM_OPCODES];
 extern char const* opcodesEnumToName[NUM_OPCODES];
 
+extern ExistOpcodeHandler existopcodeTable[MAX_MSG_TYPES];
+extern int ExistId;
+extern int NewIdOfEnumId[NUM_OPCODES];
 
-
-/// Lookup opcode name for human understandable logging
+// Lookup opcode name for human understandable logging
 inline const char* LookupOpcodeName(uint32 id)
 {
     if (id >= MAX_MSG_TYPES)
@@ -1390,5 +1404,74 @@ inline uint16 LookupOpcodeNumber(Opcodes enumValue)
         return 0;
     return opcodesEnumToNumber[enumValue];
 }
+
+inline void AddToList(Opcodes enumId, const char* name, uint16 opcodenumber, SessionStatus status, PacketProcessing packetProcessing, void (WorldSession::*handler)(WorldPacket& recvPacket))
+{
+    existopcodeTable[ExistId].enumId = enumId;
+    existopcodeTable[ExistId].namefromenumId = name;
+    existopcodeTable[ExistId].number = opcodenumber;
+    existopcodeTable[ExistId].status = status;
+    existopcodeTable[ExistId].packetProcessing = packetProcessing;
+    existopcodeTable[ExistId].handler = handler;
+    ++ExistId;
+}
+
+inline uint32 ChangeAndGetOpcodeNumber(std::string opcodename)
+{
+    uint32 opcode = -1;
+    uint32 existId = 0;
+    if (opcodename.empty())
+        return 0;
+
+    for (int i = 0; i < NUM_OPCODES; ++i)
+    {
+        if (existopcodeTable[i].namefromenumId)
+            if (existopcodeTable[i].namefromenumId == opcodename)
+            {
+                opcode = existopcodeTable[i].enumId;
+                existId = i;
+                i = NUM_OPCODES;
+            }
+    }
+
+    if (opcode == -1)
+        return opcode; // This opcode name is not exist!
+
+    uint16 id = LookupOpcodeNumber(Opcodes(opcode));
+
+    opcodeTable[id].name = "UNKNOWN";
+    opcodeTable[id].status = STATUS_NEVER;
+    opcodeTable[id].packetProcessing = PROCESS_INPLACE;
+    opcodeTable[id].handler = &WorldSession::Handle_NULL;
+    opcodeTable[id].enumValue = Opcodes(0);
+
+    int Tour = 0;
+    do
+    {
+        if (NewIdOfEnumId[Opcodes(opcode)]+1 == MAX_MSG_TYPES)
+        {
+            ++Tour;
+            NewIdOfEnumId[Opcodes(opcode)] = -1;
+        }
+        ++NewIdOfEnumId[Opcodes(opcode)];
+        printf("%u\n", NewIdOfEnumId[Opcodes(opcode)]);
+    }
+    while (NewIdOfEnumId[Opcodes(opcode)] != MAX_MSG_TYPES && Tour != 2 && opcodeTable[NewIdOfEnumId[Opcodes(opcode)]].name != "UNKNOWN" && opcodeTable[NewIdOfEnumId[Opcodes(opcode)]].name != "(UNKNOWN)");
+
+    if (Tour == 2)
+        sLog->outError("Tour is 2 some opcodes can be broken!!");
+
+    int NewId = NewIdOfEnumId[Opcodes(opcode)];
+    opcodesEnumToName[Opcodes(opcode)] = opcodename.c_str();
+    opcodesEnumToNumber[Opcodes(opcode)] = NewId;
+    opcodeTable[NewId].name = existopcodeTable[existId].namefromenumId;
+    opcodeTable[NewId].status = existopcodeTable[existId].status;
+    opcodeTable[NewId].packetProcessing = existopcodeTable[existId].packetProcessing;
+    opcodeTable[NewId].handler = existopcodeTable[existId].handler;
+    opcodeTable[NewId].enumValue = existopcodeTable[existId].enumId;
+
+    return NewId;
+}
+
 #endif
-/// @}
+// @}

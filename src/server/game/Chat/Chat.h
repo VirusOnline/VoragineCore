@@ -263,6 +263,7 @@ class ChatHandler
         bool HandleLookupTitleCommand(const char * args);
 
         bool HandleOpcodeTestCommand(const char* args);
+        bool HandleOpcodeChangeCommand(const char* args);
 
         bool HandlePDumpLoadCommand(const char *args);
         bool HandlePDumpWriteCommand(const char *args);

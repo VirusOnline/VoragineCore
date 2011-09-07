@@ -33,8 +33,12 @@ OpcodeHandler opcodeTable[MAX_MSG_TYPES];
 uint16 opcodesEnumToNumber[NUM_OPCODES];
 char const* opcodesEnumToName[NUM_OPCODES];
 
-typedef UNORDERED_MAP< std::string, uint16> OpcodeNameValueMap;
+typedef UNORDERED_MAP<std::string, uint16> OpcodeNameValueMap;
 OpcodeNameValueMap OpcodeNameValues;
+
+ExistOpcodeHandler existopcodeTable[MAX_MSG_TYPES];
+int ExistId;
+int NewIdOfEnumId[NUM_OPCODES];
 
 bool LoadOpcodes()
 {
@@ -69,13 +73,15 @@ bool LoadOpcodes()
 static void DefineOpcode(Opcodes enumId, const char* name, SessionStatus status, PacketProcessing packetProcessing, void (WorldSession::*handler)(WorldPacket& recvPacket) )
 {
     opcodesEnumToName[enumId] = name;
+    NewIdOfEnumId[enumId] = -1;
     OpcodeNameValueMap::iterator itr = OpcodeNameValues.find(std::string(name));
     if (itr != OpcodeNameValues.end())
     {
         uint16 opcode = itr->second;
         opcodesEnumToNumber[enumId] = opcode;
+        AddToList(enumId, name, opcode, status, packetProcessing, handler);
         if(opcode == 0)
-            return; // opcode unknown yet :(
+            return; // opcode unknown yet
 
         opcodeTable[opcode].name = name;
         opcodeTable[opcode].status = status;

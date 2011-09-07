@@ -1261,10 +1261,10 @@ public:
         return true;
     }
 
-	static bool HandleReloadOpcodes(ChatHandler* handler, const char* /*args*/)	
-    {	
+    static bool HandleReloadOpcodes(ChatHandler* handler, const char* /*args*/)	
+    {
         sLog->outString("Re-Loading Opcodes...");	
-        InitOpcodeTable();	
+        InitOpcodeTable();
         handler->SendGlobalGMSysMessage("Opcodes reloaded.");	
         return true;	
     }
