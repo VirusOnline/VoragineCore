@@ -36,8 +36,6 @@
 #include "WorldSession.h"
 
 #define OPCODE_NOT_FOUND 0x10000
-#define EXIST_OPC_LIST 5000 // Record for maximum 5000 opcodes
-#define EXIST_OPC_OPTION 2
 
 // List of Opcodes
 enum Opcodes
