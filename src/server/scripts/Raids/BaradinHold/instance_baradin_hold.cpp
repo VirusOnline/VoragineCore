@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2011 CataProject
+ */
+
 #include "ScriptPCH.h"
 #include "baradin_hold.h"
 

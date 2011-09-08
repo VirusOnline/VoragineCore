@@ -1,3 +1,7 @@
+/*
+* Copyright (C) 2009-2011 CataProject
+*/
+
 #ifndef DEF_BARADINHOLD_H
 #define DEF_BARADINHOLD_H
 
