@@ -42,6 +42,8 @@ int NewIdOfEnumId[NUM_OPCODES];
 
 bool LoadOpcodes()
 {
+    uint32 oldMSTime = getMSTime();
+
     uint16 build = 14480;
     QueryResult result = WorldDatabase.PQuery("SELECT name, number FROM opcodes where version = %u", build);
 
@@ -65,7 +67,7 @@ bool LoadOpcodes()
     } while (result->NextRow());
 
     sLog->outString();
-    sLog->outString(">> Loaded %u opcodes for build %u", count, build);
+    sLog->outString(">> Loaded %u opcodes for build %u in %u ms.", count, build, GetMSTimeDiffToNow(oldMSTime));
 
     return true;
 }

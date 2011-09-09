@@ -273,9 +273,9 @@ inline void LoadDATA(uint32& availableDataLocales, StoreProblemList& errors, DAT
     delete sql;
 }
 
-/// Correspondence between format formats and their names/handlers
+// Correspondence between format formats and their names/handlers
 /*FormatHandler formatTable[MAX_FORMAT_TYPES];
-char formatEnumToFormat[LastFormatData];
+char* formatEnumToFormat[LastFormatData];
 char const* formatEnumToName[LastFormatData];
 
 typedef UNORDERED_MAP< std::string, std::string> DataFormatsMap;
@@ -285,7 +285,8 @@ bool LoadDATAFormats()
 {
     uint32 oldMSTime = getMSTime();
 
-    QueryResult result = WorldDatabase.PQuery("SELECT name, format FROM dataformats");
+    uint16 build = 14480;
+    QueryResult result = WorldDatabase.PQuery("SELECT name, format FROM dataformats WHERE `version`=%u", build);
 
     if (!result)
     {
@@ -310,31 +311,32 @@ bool LoadDATAFormats()
     sLog->outString(">> Loaded %u data formats in %u ms.", count, GetMSTimeDiffToNow(oldMSTime));
 
     return true;
-}*/
-
+}
+*/
 template<class TT>
-static void DefineFormat(/*DATAFormats*/ const char* enumId, const char* name, uint32& availableDataLocales, StoreProblemList& errlist, DATAStorage<TT>& storage, const std::string& dbc_path, const std::string& filename)
+static void DefineFormat(/*DATAFormats*/const char* enumId, const char* name, uint32& availableDataLocales, StoreProblemList& errlist, DATAStorage<TT>& storage, const std::string& dataPath, const std::string& filename)
 {
     /*formatEnumToName[enumId] = name;
     DataFormatsMap::iterator itr = DataFormats.find(std::string(name));
     if (itr != DataFormats.end())
     {
         char *format = new char[itr->second.size() + 1];
-        std::strcpy ( format, itr->second.c_str() );
-        formatEnumToFormat[enumId] = *format;
+        std::strcpy (format, itr->second.c_str());
+        formatEnumToFormat[enumId] = format;
         if(format == "")
             return;
 
         formatTable[enumId].name = name;
         formatTable[enumId].enumValue = enumId;
+        DATAStorage <TT> storage(format);
         storage.SetFormat(format);*/
-        LoadDATA(availableDataLocales, errlist, storage, dbc_path, filename);
-/*    }
+        LoadDATA(availableDataLocales, errlist, storage, dataPath, filename);
+    /*}
     else
     {
         sLog->outError("Format not found in the DB %s.", name);
         char *format = "";
-        formatEnumToFormat[enumId] = *format;
+        formatEnumToFormat[enumId] = format;
     }*/
 }
 
@@ -536,7 +538,7 @@ void LoadDATAStores()
     }
 
     sSpellStore.Clear();
-/*    sSpellStore.SetNCount((sTrueSpellStore.nCount));
+    /*sSpellStore.SetNCount((sTrueSpellStore.nCount));
     DataFormatsMap::const_iterator SpellStoreFormat = DataFormats.find("SpellEntryfmt");
     sSpellStore.SetFieldCount((strlen(SpellStoreFormat->second.c_str())));
     sSpellStore.SetIndexTable(new SpellEntry*[sSpellStore.GetFieldCount()]);*/
@@ -786,17 +788,17 @@ void LoadDATAStores()
         exit(1);
     }
 
-    /*// Check loaded DBC files proper version
-    if (!sAreaStore.LookupEntry(5839)              ||       // last area (areaflag) added in 4.2.0 (14333)
-        !sCharTitlesStore.LookupEntry(279)         ||       // last char title added in 4.2.0 (14333)
-        !sGemPropertiesStore.LookupEntry(1860)     ||       // last gem property added in 4.2.0 (14333)
-        !sItemExtendedCostStore.LookupEntry(3652)  ||       // last item extended cost added in 4.2.0 (14333)
-        !sMapStore.LookupEntry(968)                ||       // last map added in 4.2.0 (14333)
-        !sSpellStore.LookupEntry(102129)            )        // last added spell in 4.2.0 (14333)
+    // Check loaded DATA files proper version
+    if (//!sAreaStore.LookupEntry(5839)              ||       // last area (areaflag) added in 4.2.0a (14480)
+        !sCharTitlesStore.LookupEntry(279)         ||       // last char title added in 4.2.0a (14480)
+        !sGemPropertiesStore.LookupEntry(1860)     ||       // last gem property added in 4.2.0a (14480)
+        !sItemExtendedCostStore.LookupEntry(3652)  ||       // last item extended cost added in 4.2.0a (14480)
+        !sMapStore.LookupEntry(968)                ||       // last map added in 4.2.0a (14480)
+        !sSpellStore.LookupEntry(102129)            )       // last added spell in 4.2.0a (14480)
     {
-        sLog->outError("\nYou have outdated DBC files. Please extract correct versions from current using client.");
+        sLog->outError("\nYou have outdated DATA files. Please extract correct versions from current using client.");
         exit(1);
-    }*/
+    }
 
     sLog->outString(">> Initialized %d data stores in %u ms", DATAFileCount, GetMSTimeDiffToNow(oldMSTime));
     sLog->outString();

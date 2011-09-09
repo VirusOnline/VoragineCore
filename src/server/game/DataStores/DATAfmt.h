@@ -286,7 +286,7 @@ struct FormatHandler
 
 #define MAX_FORMAT_TYPES 500
 extern FormatHandler formatTable[MAX_FORMAT_TYPES];
-extern char formatEnumToFormat[LastFormatData];
+extern char* formatEnumToFormat[LastFormatData];
 extern char const* formatEnumToName[LastFormatData];
 
 inline const char* LookupFormatName(DATAFormats enumValue)
@@ -300,16 +300,16 @@ inline const char* LookupFormatName(DATAFormats enumValue)
     return formatEnumToName[enumValue];
 }
 
-inline char* LookupFormat(DATAFormats enumValue)
+inline const char* LookupFormat(DATAFormats enumValue)
 {
     if (enumValue >= LastFormatData)   // check can be removed for performance
-        return NULL;
-    return (char*)formatEnumToFormat[enumValue];
+        return "";
+    return formatEnumToFormat[enumValue];
 }*/
 
 const char* LookupFormat(const char* format)
 {
-	return format;
+    return format;
 }
 
 #endif
