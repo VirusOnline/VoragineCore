@@ -346,6 +346,8 @@ void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recv_data*/)
                 "WHERE characters.account = '%u' ORDER BY characters.guid",
                 GetAccountId()
             );
+
+    _accountIdForDeletion = GetAccountId();
 }
 
 void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
@@ -785,7 +787,51 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)
 {
     uint64 guid;
     recv_data >> guid;
-    guid ^= 1;  // 4.2 May need more changes for GUIDs > 255
+
+    std::string strguid;
+    std::ostringstream ss;
+    ss << guid;
+    strguid = ss.str();
+
+    switch (strguid.at(strguid.size()-1))
+    {
+    // For double numbers
+    case '0':
+    case '2':
+    case '4':
+    case '6':
+    case '8':
+        ++guid;
+        break;
+    // For single numbers
+    case '1':
+    case '3':
+    case '5':
+    case '7':
+    case '9':
+        --guid;
+        break;
+    }
+	/*We will not use this function until we solve the new encryption..
+    QueryResult charresult = CharacterDatabase.PQuery("SELECT guid, name FROM characters WHERE account='%u'", GetAccountIdForCharDeletion());
+    if (!charresult)
+        return;
+
+    uint32 guids[1000]; // Max 1000 characters for an account
+    int LastCharacter = -1;
+
+    do
+    {
+        ++LastCharacter;
+        Field *fields = charresult->Fetch();
+        guids[LastCharacter] = fields[0].GetUInt32();
+    }
+    while (charresult->NextRow());
+
+    bool SecondOption = true;
+    for (int i = 0; i < LastCharacter+1; ++i)
+        if (guids[i] == guid)
+            SecondOption = false;*/
 
     // can't delete loaded character
     if (sObjectMgr->GetPlayer(guid))

@@ -261,6 +261,7 @@ class WorldSession
 
         AccountTypes GetSecurity() const { return _security; }
         uint32 GetAccountId() const { return _accountId; }
+        uint32 GetAccountIdForCharDeletion() const { return _accountIdForDeletion; }
         Player* GetPlayer() const { return _player; }
         char const* GetPlayerName() const;
         void SetSecurity(AccountTypes security) { _security = security; }
@@ -1002,6 +1003,7 @@ class WorldSession
 
         AccountTypes _security;
         uint32 _accountId;
+        uint32 _accountIdForDeletion;
         uint8 m_expansion;
 
         time_t _logoutTime;
