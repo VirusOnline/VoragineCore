@@ -2138,8 +2138,8 @@ void AchievementMgr::SendAllAchievementData() const
     for(CriteriaProgressMap::const_iterator iter = m_criteriaProgress.begin(); iter!=m_criteriaProgress.end(); ++iter)
         data << uint32(iter->first);
 
-/*    if (data.wpos() > 100)
-        data.compress(SMSG_COMPRESSED_ACHIEVEMENT_DATA);*/
+    if (data.wpos() > 100)
+        data.compress(SMSG_COMPRESSED_ACHIEVEMENT_DATA);
 
     GetPlayer()->GetSession()->SendPacket(&data);
 }
@@ -2181,8 +2181,8 @@ void AchievementMgr::SendRespondInspectAchievements(Player* player) const
     for(CompletedAchievementMap::const_iterator iter = m_completedAchievements.begin(); iter!=m_completedAchievements.end(); ++iter)
         data << uint32(secsToTimeBitFields(iter->second.date));
 
-/*    if (data.wpos() > 100)
-        data.compress(SMSG_COMPRESSED_RESPOND_INSPECT_ACHIEVEMENTS);*/
+    if (data.wpos() > 100)
+        data.compress(SMSG_COMPRESSED_RESPOND_INSPECT_ACHIEVEMENTS);
 
     player->GetSession()->SendPacket(&data);
 }
@@ -2625,74 +2625,3 @@ void AchievementGlobalMgr::LoadRewardLocales()
     sLog->outString(">> Loaded %lu achievement reward locale strings in %u ms", (unsigned long)m_achievementRewardLocales.size(), GetMSTimeDiffToNow(oldMSTime));
     sLog->outString();
 }
-/*
-void AchievementMgr::Compress(WorldPacket &packet, uint32 newOpcode)
-{
-    uint32 pSize = packet.wpos();
-    uint32 destsize = compressBound(pSize);
-    packet.resize(destsize + sizeof(uint32));
-    packet.put<uint32>(0, pSize);
-
-    Compress(const_cast<uint8*>(packet.contents()) + sizeof(uint32), &destsize, (void*)packet.contents(), pSize);
-    if (destsize == 0)
-        return;
-
-    packet.resize(destsize + sizeof(uint32));
-    packet.SetOpcode(newOpcode);
-}
-
-void AchievementMgr::Compress(void* dst, uint32 *dst_size, void* src, int src_size)
-{
-    z_stream c_stream;
-
-    c_stream.zalloc = (alloc_func)0;
-    c_stream.zfree = (free_func)0;
-    c_stream.opaque = (voidpf)0;
-
-    // default Z_BEST_SPEED (1)
-    int z_res = deflateInit(&c_stream, sWorld->getIntConfig(CONFIG_COMPRESSION));
-    if (z_res != Z_OK)
-    {
-        sLog->outError("Can't compress update packet (zlib: deflateInit) Error code: %i (%s)", z_res, zError(z_res));
-        *dst_size = 0;
-        return;
-    }
-
-    c_stream.next_out = (Bytef*)dst;
-    c_stream.avail_out = *dst_size;
-    c_stream.next_in = (Bytef*)src;
-    c_stream.avail_in = (uInt)src_size;
-
-    z_res = deflate(&c_stream, Z_NO_FLUSH);
-    if (z_res != Z_OK)
-    {
-        sLog->outError("Can't compress update packet (zlib: deflate) Error code: %i (%s)", z_res, zError(z_res));
-        *dst_size = 0;
-        return;
-    }
-
-    if (c_stream.avail_in != 0)
-    {
-        sLog->outError("Can't compress update packet (zlib: deflate not greedy)");
-        *dst_size = 0;
-        return;
-    }
-
-    z_res = deflate(&c_stream, Z_FINISH);
-    if (z_res != Z_STREAM_END)
-    {
-        sLog->outError("Can't compress update packet (zlib: deflate should report Z_STREAM_END instead %i (%s)", z_res,zError(z_res));
-        *dst_size = 0;
-        return;
-    }
-
-    z_res = deflateEnd(&c_stream);
-    if (z_res != Z_OK)
-    {
-        sLog->outError("Can't compress update packet (zlib: deflateEnd) Error code: %i (%s)", z_res,zError(z_res));
-        *dst_size = 0;
-        return;
-    }
-
-    *dst_size = c_stream.total_out;
-}*/

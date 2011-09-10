@@ -161,20 +161,8 @@ std::string Object::_ConcatFields(uint16 startIndex, uint16 size) const
 {
     std::ostringstream ss;
     for (uint16 index = 0; index < size; ++index)
-        ss << GetUInt32Value(index + startIndex) << " ";
+        ss << GetUInt32Value(index + startIndex) << ' ';
     return ss.str();
-}
-
-void Object::BuildMovementUpdateBlock(UpdateData * data, uint32 flags) const
-{
-    /*ByteBuffer buf(500);
-
-    buf << uint8(UPDATETYPE_MOVEMENT);
-    buf.append(GetPackGUID());
-
-    _BuildMovementUpdate(&buf, flags);
-
-    data->AddUpdateBlock(buf);*/
 }
 
 void Object::BuildCreateUpdateBlockForPlayer(UpdateData *data, Player *target) const
@@ -465,9 +453,7 @@ void Object::_BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask 
         return;
 
     uint32 valuesCount = m_valuesCount;
-    if(GetTypeId() == TYPEID_PLAYER && target != this)
-        valuesCount = m_valuesCount;
-    if(GetTypeId() == TYPEID_PLAYER && target != this)
+    if (GetTypeId() == TYPEID_PLAYER && target != this)
         valuesCount = PLAYER_FIELD_INV_SLOT_HEAD;;
 
     bool IsActivateToQuest = false;
@@ -491,7 +477,7 @@ void Object::_BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask 
             }
         }
     }
-    else                                                    // case UPDATETYPE_MOVEMENT
+    else                                                    // case UPDATETYPE_VALUES
     {
         if (isType(TYPEMASK_GAMEOBJECT) && !((GameObject*)this)->IsTransport())
         {
@@ -757,21 +743,6 @@ void Object::BuildFieldsUpdate(Player *pl, UpdateDataMapType &data_map) const
     BuildValuesUpdateBlockForPlayer(&iter->second, iter->first);
 }
 
-bool Object::LoadValues(const char* data)
-{
-    if (!m_uint32Values) _InitValues();
-
-    Tokens tokens(data, ' ');
-
-    if (tokens.size() != m_valuesCount)
-        return false;
-
-    for (uint16 index = 0; index < m_valuesCount; ++index)
-        m_uint32Values[index] = atol(tokens[index]);
-
-    return true;
-}
-
 void Object::_LoadIntoDataField(const char* data, uint32 startOffset, uint32 count)
 {
     if (!data)
@@ -781,12 +752,8 @@ void Object::_LoadIntoDataField(const char* data, uint32 startOffset, uint32 cou
 
     if (tokens.size() != count)
         return;
-
-    uint32 valuesCount = m_valuesCount;
-
-    Tokens::iterator iter;
-    uint32 index;
-    for (iter = tokens.begin(), index = 0; index < count; ++iter, ++index)
+ 
+    for (uint32 index = 0; index < count; ++index)
         m_uint32Values[startOffset + index] = atol(tokens[index]);
 }
 
@@ -866,7 +833,7 @@ void Object::UpdateUInt32Value(uint16 index, uint32 value)
     m_uint32Values[ index ] = value;
 }
 
-void Object::SetUInt64Value(uint16 index, const uint64 &value)
+void Object::SetUInt64Value(uint16 index, const uint64 value)
 {
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, true));
     if (*((uint64*)&(m_uint32Values[ index ])) != value)
@@ -885,7 +852,7 @@ void Object::SetUInt64Value(uint16 index, const uint64 &value)
     }
 }
 
-bool Object::AddUInt64Value(uint16 index, const uint64 &value)
+bool Object::AddUInt64Value(uint16 index, const uint64 value)
 {
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index , true));
     if (value && !*((uint64*)&(m_uint32Values[index])))
@@ -906,7 +873,7 @@ bool Object::AddUInt64Value(uint16 index, const uint64 &value)
     return false;
 }
 
-bool Object::RemoveUInt64Value(uint16 index, const uint64 &value)
+bool Object::RemoveUInt64Value(uint16 index, const uint64 value)
 {
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index , true));
     if (value && *((uint64*)&(m_uint32Values[index])) == value)
@@ -1587,39 +1554,6 @@ bool Position::IsPositionValid() const
     return Voragine::IsValidMapCoord(m_positionX, m_positionY, m_positionZ, m_orientation);
 }
 
-void WorldObject::MonsterSay(const char* text, uint32 language, uint64 TargetGuid)
-{
-    WorldPacket data(SMSG_MESSAGECHAT, 200);
-    BuildMonsterChat(&data, CHAT_MSG_MONSTER_SAY, text, language, GetName(), TargetGuid);
-    SendMessageToSetInRange(&data, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_SAY), true);
-}
-
-void WorldObject::MonsterYell(const char* text, uint32 language, uint64 TargetGuid)
-{
-    WorldPacket data(SMSG_MESSAGECHAT, 200);
-    BuildMonsterChat(&data, CHAT_MSG_MONSTER_YELL, text, language, GetName(), TargetGuid);
-    SendMessageToSetInRange(&data, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_YELL), true);
-}
-
-void WorldObject::MonsterTextEmote(const char* text, uint64 TargetGuid, bool IsBossEmote)
-{
-    WorldPacket data(SMSG_MESSAGECHAT, 200);
-    BuildMonsterChat(&data, IsBossEmote ? CHAT_MSG_RAID_BOSS_EMOTE : CHAT_MSG_MONSTER_EMOTE, text, LANG_UNIVERSAL, GetName(), TargetGuid);
-    SendMessageToSetInRange(&data, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE), true);
-}
-
-void WorldObject::MonsterWhisper(const char* text, uint64 receiver, bool IsBossWhisper)
-{
-    Player* player = sObjectMgr->GetPlayer(receiver);
-    if (!player || !player->GetSession())
-        return;
-
-    WorldPacket data(SMSG_MESSAGECHAT, 200);
-    BuildMonsterChat(&data, IsBossWhisper ? CHAT_MSG_RAID_BOSS_WHISPER : CHAT_MSG_MONSTER_WHISPER, text, LANG_UNIVERSAL, GetName(), receiver);
-
-    player->GetSession()->SendPacket(&data);
-}
-
 bool WorldObject::isValid() const
 {
     if (!IsInWorld())
@@ -1885,7 +1819,7 @@ namespace Voragine
                 : i_object(obj), i_msgtype(msgtype), i_textId(textId), i_language(language), i_targetGUID(targetGUID) {}
             void operator()(WorldPacket& data, LocaleConstant loc_idx)
             {
-                char const* text = sObjectMgr->GetVoragineString(i_textId,loc_idx);
+                char const* text = sObjectMgr->GetVoragineString(i_textId, loc_idx);
 
                 // TODO: i_object.GetName() also must be localized?
                 i_object.BuildMonsterChat(&data, i_msgtype, text, i_language, i_object.GetNameForLocaleIdx(loc_idx), i_targetGUID);
@@ -1898,7 +1832,41 @@ namespace Voragine
             uint32 i_language;
             uint64 i_targetGUID;
     };
+
+    class MonsterCustomChatBuilder
+    {
+        public:
+            MonsterCustomChatBuilder(WorldObject const& obj, ChatMsg msgtype, const char* text, uint32 language, uint64 targetGUID)
+                : i_object(obj), i_msgtype(msgtype), i_text(text), i_language(language), i_targetGUID(targetGUID) {}
+            void operator()(WorldPacket& data, LocaleConstant loc_idx)
+            {
+                // TODO: i_object.GetName() also must be localized?
+                i_object.BuildMonsterChat(&data, i_msgtype, i_text, i_language, i_object.GetNameForLocaleIdx(loc_idx), i_targetGUID);
+            }
+
+        private:
+            WorldObject const& i_object;
+            ChatMsg i_msgtype;
+            const char* i_text;
+            uint32 i_language;
+            uint64 i_targetGUID;
+    };
 }                                                           // namespace Voragine
+
+void WorldObject::MonsterSay(const char* text, uint32 language, uint64 TargetGuid)
+{
+    CellPair p = Voragine::ComputeCellPair(GetPositionX(), GetPositionY());
+
+    Cell cell(p);
+    cell.data.Part.reserved = ALL_DISTRICT;
+    cell.SetNoCreate();
+
+    Voragine::MonsterCustomChatBuilder say_build(*this, CHAT_MSG_MONSTER_SAY, text, language, TargetGuid);
+    Voragine::LocalizedPacketDo<Voragine::MonsterCustomChatBuilder> say_do(say_build);
+    Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterCustomChatBuilder> > say_worker(this, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_SAY), say_do);
+    TypeContainerVisitor<Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterCustomChatBuilder> >, WorldTypeMapContainer > message(say_worker);
+    cell.Visit(p, message, *GetMap(), *this, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_SAY));
+}
 
 void WorldObject::MonsterSay(int32 textId, uint32 language, uint64 TargetGuid)
 {
@@ -1913,6 +1881,21 @@ void WorldObject::MonsterSay(int32 textId, uint32 language, uint64 TargetGuid)
     Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterChatBuilder> > say_worker(this,sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_SAY),say_do);
     TypeContainerVisitor<Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterChatBuilder> >, WorldTypeMapContainer > message(say_worker);
     cell.Visit(p, message, *GetMap(), *this, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_SAY));
+}
+
+void WorldObject::MonsterYell(const char* text, uint32 language, uint64 TargetGuid)
+{
+    CellPair p = Voragine::ComputeCellPair(GetPositionX(), GetPositionY());
+
+    Cell cell(p);
+    cell.data.Part.reserved = ALL_DISTRICT;
+    cell.SetNoCreate();
+
+    Voragine::MonsterCustomChatBuilder say_build(*this, CHAT_MSG_MONSTER_YELL, text, language, TargetGuid);
+    Voragine::LocalizedPacketDo<Voragine::MonsterCustomChatBuilder> say_do(say_build);
+    Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterCustomChatBuilder> > say_worker(this, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_YELL), say_do);
+    TypeContainerVisitor<Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterCustomChatBuilder> >, WorldTypeMapContainer > message(say_worker);
+    cell.Visit(p, message, *GetMap(), *this, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_YELL));
 }
 
 void WorldObject::MonsterYell(int32 textId, uint32 language, uint64 TargetGuid)
@@ -1943,6 +1926,13 @@ void WorldObject::MonsterYellToZone(int32 textId, uint32 language, uint64 Target
             say_do(itr->getSource());
 }
 
+void WorldObject::MonsterTextEmote(const char* text, uint64 TargetGuid, bool IsBossEmote)
+{
+    WorldPacket data(SMSG_MESSAGECHAT, 200);
+    BuildMonsterChat(&data, IsBossEmote ? CHAT_MSG_RAID_BOSS_EMOTE : CHAT_MSG_MONSTER_EMOTE, text, LANG_UNIVERSAL, GetName(), TargetGuid);
+    SendMessageToSetInRange(&data, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE), true);
+}
+
 void WorldObject::MonsterTextEmote(int32 textId, uint64 TargetGuid, bool IsBossEmote)
 {
     CellPair p = Voragine::ComputeCellPair(GetPositionX(), GetPositionY());
@@ -1956,6 +1946,20 @@ void WorldObject::MonsterTextEmote(int32 textId, uint64 TargetGuid, bool IsBossE
     Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterChatBuilder> > say_worker(this,sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE),say_do);
     TypeContainerVisitor<Voragine::PlayerDistWorker<Voragine::LocalizedPacketDo<Voragine::MonsterChatBuilder> >, WorldTypeMapContainer > message(say_worker);
     cell.Visit(p, message, *GetMap(), *this, sWorld->getFloatConfig(CONFIG_LISTEN_RANGE_TEXTEMOTE));
+}
+
+void WorldObject::MonsterWhisper(const char* text, uint64 receiver, bool IsBossWhisper)
+{
+    Player* player = ObjectAccessor::FindPlayer(receiver);
+    if (!player || !player->GetSession())
+        return;
+
+    LocaleConstant loc_idx = player->GetSession()->GetSessionDbLocaleIndex();
+
+    WorldPacket data(SMSG_MESSAGECHAT, 200);
+    BuildMonsterChat(&data, IsBossWhisper ? CHAT_MSG_RAID_BOSS_WHISPER : CHAT_MSG_MONSTER_WHISPER, text, LANG_UNIVERSAL, GetNameForLocaleIdx(loc_idx), receiver);
+
+    player->GetSession()->SendPacket(&data);
 }
 
 void WorldObject::MonsterWhisper(int32 textId, uint64 receiver, bool IsBossWhisper)
@@ -2173,11 +2177,8 @@ void WorldObject::SetZoneScript()
     {
         if (map->IsDungeon())
             m_zoneScript = (ZoneScript*)((InstanceMap*)map)->GetInstanceScript();
-        else
-		{GetZoneId();
-			/*if (!map->IsBattlegroundOrArena())
-            m_zoneScript = sOutdoorPvPMgr->GetZoneScript(GetZoneId());*/
-		}
+        else if (!map->IsBattlegroundOrArena())
+            m_zoneScript = sOutdoorPvPMgr->GetZoneScript(GetZoneId());
     }
 }
 
@@ -2231,7 +2232,7 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
     pet->Relocate(x, y, z, ang);
     if (!pet->IsPositionValid())
     {
-        sLog->outError("Pet (guidlow %d, entry %d) not summoned. Suggested coordinates isn't valid (X: %f Y: %f)",pet->GetGUIDLow(),pet->GetEntry(),pet->GetPositionX(),pet->GetPositionY());
+        sLog->outError("Pet (guidlow %d, entry %d) not summoned. Suggested coordinates isn't valid (X: %f Y: %f)", pet->GetGUIDLow(), pet->GetEntry(), pet->GetPositionX(), pet->GetPositionY());
         delete pet;
         return NULL;
     }
@@ -2250,7 +2251,7 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
 
     pet->setPowerType(POWER_MANA);
     pet->SetUInt32Value(UNIT_NPC_FLAGS , 0);
-    pet->SetUInt32Value(UNIT_FIELD_BYTES_1,0);
+    pet->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
     pet->InitStatsForLevel(getLevel());
 
     //only slot 100, as it's not hunter pet.

@@ -65,7 +65,7 @@ class WorldPacket : public ByteBuffer
         inline void SetOpcode(uint32 opcode) { m_opcode = opcode; m_opcodeEnum = LookupOpcodeEnum(opcode); }
         inline void SetOpcode(Opcodes enumVal) { m_opcode = LookupOpcodeNumber(enumVal); m_opcodeEnum = enumVal; }
 
-        void compress(Opcodes opcode);
+        void compress(Opcodes enumVal);
 
         void ReadByteMask(uint8& b)
         {

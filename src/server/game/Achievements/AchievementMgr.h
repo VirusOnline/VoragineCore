@@ -282,9 +282,6 @@ class AchievementMgr
         bool IsCompletedAchievement(AchievementEntry const* entry);
         bool CanUpdateCriteria(AchievementCriteriaEntry const* criteria, AchievementEntry const* achievement);
 
-        void Compress(WorldPacket& data, uint32 newOpcode);
-        void Compress(void* dst, uint32 *dst_size, void* src, int src_size);
-
         Player* m_player;
         uint32 m_achievementPoints;
         CriteriaProgressMap m_criteriaProgress;

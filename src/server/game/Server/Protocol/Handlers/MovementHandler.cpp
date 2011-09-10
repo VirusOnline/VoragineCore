@@ -50,6 +50,8 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     if (!GetPlayer()->IsBeingTeleportedFar())
         return;
 
+    GetPlayer()->SetSemaphoreTeleportFar(false);
+
     // get the teleport destination
     WorldLocation &loc = GetPlayer()->GetTeleportDest();
 
@@ -68,13 +70,11 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     if (GetPlayer()->m_InstanceValid == false && !mInstance)
         GetPlayer()->m_InstanceValid = true;
 
-    GetPlayer()->SetSemaphoreTeleportFar(false);
-
     Map * oldMap = GetPlayer()->GetMap();
     ASSERT(oldMap);
     if (GetPlayer()->IsInWorld())
     {
-        sLog->outCrash("Player is still in world when teleported from map %u! to new map %u", oldMap->GetId(), loc.GetMapId());
+        sLog->outCrash("Player (Name %s) is still in world when teleported from map %u to new map %u", GetPlayer()->GetName(), oldMap->GetId(), loc.GetMapId());
         oldMap->Remove(GetPlayer(), false);
     }
 
@@ -148,7 +148,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     {
         if (mEntry->IsDungeon())
         {
-            GetPlayer()->ResurrectPlayer(0.5f,false);
+            GetPlayer()->ResurrectPlayer(0.5f, false);
             GetPlayer()->SpawnCorpseBones();
         }
     }
@@ -185,7 +185,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         GetPlayer()->CastSpell(GetPlayer(), 2479, true);
 
     // in friendly area
-    else if (GetPlayer()->IsPvP() && !GetPlayer()->HasFlag(PLAYER_FLAGS,PLAYER_FLAGS_IN_PVP))
+    else if (GetPlayer()->IsPvP() && !GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_IN_PVP))
         GetPlayer()->UpdatePvP(false, false);
 
     // resummon pet
@@ -222,7 +222,7 @@ void WorldSession::HandleMoveTeleportAck(WorldPacket& recv_data)
 
     WorldLocation const& dest = plMover->GetTeleportDest();
 
-    plMover->SetPosition(dest,true);
+    plMover->SetPosition(dest, true);
 
     uint32 newzone, newarea;
     plMover->GetZoneAndAreaId(newzone, newarea);
@@ -236,7 +236,7 @@ void WorldSession::HandleMoveTeleportAck(WorldPacket& recv_data)
             plMover->CastSpell(plMover, 2479, true);
 
         // in friendly area
-        else if (plMover->IsPvP() && !plMover->HasFlag(PLAYER_FLAGS,PLAYER_FLAGS_IN_PVP))
+        else if (plMover->IsPvP() && !plMover->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_IN_PVP))
             plMover->UpdatePvP(false, false);
     }
 
@@ -362,7 +362,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
     mover->SetPosition(movementInfo.pos);
 
     if (plMover)                                            // nothing is charmed, or player charmed
-    {    
+    {
         if (plMover->GetEmoteState() != 0 && opcode == MSG_MOVE_START_FORWARD && opcode != MSG_MOVE_SET_FACING &&
             opcode != MSG_MOVE_START_TURN_LEFT && opcode != MSG_MOVE_START_TURN_RIGHT &&
             opcode != MSG_MOVE_STOP_TURN)
@@ -370,7 +370,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 
         plMover->UpdateFallInformationIfNeed(movementInfo, opcode);
 
-        if (movementInfo.pos.GetPositionZ() < -5000.0f)
+        if (movementInfo.pos.GetPositionZ() < -500.0f)
         {
             if (!(plMover->InBattleground()
                 && plMover->GetBattleground()
@@ -467,12 +467,12 @@ void WorldSession::HandleForceSpeedChangeAck(WorldPacket &recv_data)
         {
             sLog->outError("%sSpeedChange player %s is NOT correct (must be %f instead %f), force set to correct value",
                 move_type_name[move_type], _player->GetName(), _player->GetSpeed(move_type), newspeed);
-            _player->SetSpeed(move_type,_player->GetSpeedRate(move_type),true);
+            _player->SetSpeed(move_type, _player->GetSpeedRate(move_type), true);
         }
         else                                                // must be lesser - cheating
         {
             sLog->outBasic("Player %s from account id %u kicked for incorrect speed (must be %f instead %f)",
-                _player->GetName(),_player->GetSession()->GetAccountId(),_player->GetSpeed(move_type), newspeed);
+                _player->GetName(), _player->GetSession()->GetAccountId(), _player->GetSpeed(move_type), newspeed);
             _player->GetSession()->KickPlayer();
         }
     }
@@ -511,7 +511,7 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket &recv_data)
         }
         else
         {
-            sLog->outError("HandleSetActiveMoverOpcode: incorrect mover guid: mover is " UI64FMTD " and should be " UI64FMTD, guid, _player->m_mover->GetGUID());
+            sLog->outError("HandleSetActiveMoverOpcode: incorrect mover guid: mover is " UI64FMTD " (%s - Entry: %u) and should be " UI64FMTD, guid, GetLogNameForGuid(guid), GUID_ENPART(guid), _player->m_mover->GetGUID());
             GetPlayer()->SetMover(GetPlayer());
         }
     }

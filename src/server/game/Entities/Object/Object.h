@@ -214,7 +214,7 @@ class Object
         void SetInt32Value(uint16 index,        int32  value);
         void SetUInt32Value(uint16 index,       uint32  value);
         void UpdateUInt32Value(uint16 index,       uint32  value);
-        void SetUInt64Value(uint16 index, const uint64 &value);
+        void SetUInt64Value(uint16 index, const uint64 value);
         void SetFloatValue(uint16 index,       float   value);
         void SetByteValue(uint16 index, uint8 offset, uint8 value);
         void SetUInt16Value(uint16 index, uint8 offset, uint16 value);
@@ -222,8 +222,8 @@ class Object
         void SetStatFloatValue(uint16 index, float value);
         void SetStatInt32Value(uint16 index, int32 value);
 
-        bool AddUInt64Value(uint16 index, const uint64 &value);
-        bool RemoveUInt64Value(uint16 index, const uint64 &value);
+        bool AddUInt64Value(uint16 index, const uint64 value);
+        bool RemoveUInt64Value(uint16 index, const uint64 value);
 
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
@@ -313,8 +313,6 @@ class Object
 
         void ClearUpdateMask(bool remove);
 
-        bool LoadValues(const char* data);
-
         uint16 GetValuesCount() const { return m_valuesCount; }
 
         virtual bool hasQuest(uint32 /* quest_id */) const { return false; }
@@ -346,6 +344,7 @@ class Object
         void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
 
         virtual void _SetUpdateBits(UpdateMask *updateMask, Player *target) const;
+
         virtual void _SetCreateBits(UpdateMask *updateMask, Player *target) const;
         void _BuildMovementUpdate(ByteBuffer * data, uint16 flags) const;
         void _BuildValuesUpdate(uint8 updatetype, ByteBuffer *data, UpdateMask *updateMask, Player *target) const;
@@ -707,7 +706,7 @@ class WorldObject : public Object, public WorldLocation
             { return IsInDist2d(x, y, dist + GetObjectSize()); }
         bool IsWithinDist2d(const Position *pos, float dist) const
             { return IsInDist2d(pos, dist + GetObjectSize()); }
-        bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
+        virtual bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
         // use only if you will sure about placing both object at same map
         bool IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D = true) const
         {
