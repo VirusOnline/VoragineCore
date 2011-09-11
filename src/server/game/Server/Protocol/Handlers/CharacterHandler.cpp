@@ -785,53 +785,48 @@ void WorldSession::HandleCharCreateCallback(PreparedQueryResult result, Characte
 
 void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)
 {
-    uint64 guid;
-    recv_data >> guid;
+    uint64 guid = 0;
+    uint8 packetGuid, byte;
 
-    std::string strguid;
-    std::ostringstream ss;
-    ss << guid;
-    strguid = ss.str();
+    sLog->outStaticDebug("WORLD: Received Player Delete Message");
 
-    switch (strguid.at(strguid.size()-1))
+    recv_data >> packetGuid;
+    recv_data >> byte;
+
+    for (int i = 0; i < 2; ++i)
     {
-    // For double numbers
-    case '0':
-    case '2':
-    case '4':
-    case '6':
-    case '8':
-        ++guid;
-        break;
-    // For single numbers
-    case '1':
-    case '3':
-    case '5':
-    case '7':
-    case '9':
-        --guid;
-        break;
+        int number;
+        if (i == 0)
+            number = packetGuid;
+        else
+            number = byte;
+     
+        if(number % 2 == 0)
+        {
+            if (i == 0)
+            {
+                if (packetGuid > 0)
+                    ++packetGuid;
+            }
+            else
+            {
+                if (byte != 0)
+                    ++byte;
+            }
+        }
+        else
+        {
+            if (i == 0)
+            {
+                if (packetGuid < 255)
+                    --packetGuid;
+            }
+            else
+                --byte;
+        }
     }
-	/*We will not use this function until we solve the new encryption..
-    QueryResult charresult = CharacterDatabase.PQuery("SELECT guid, name FROM characters WHERE account='%u'", GetAccountIdForCharDeletion());
-    if (!charresult)
-        return;
 
-    uint32 guids[1000]; // Max 1000 characters for an account
-    int LastCharacter = -1;
-
-    do
-    {
-        ++LastCharacter;
-        Field *fields = charresult->Fetch();
-        guids[LastCharacter] = fields[0].GetUInt32();
-    }
-    while (charresult->NextRow());
-
-    bool SecondOption = true;
-    for (int i = 0; i < LastCharacter+1; ++i)
-        if (guids[i] == guid)
-            SecondOption = false;*/
+    guid = (byte*256)+packetGuid;
 
     // can't delete loaded character
     if (sObjectMgr->GetPlayer(guid))
