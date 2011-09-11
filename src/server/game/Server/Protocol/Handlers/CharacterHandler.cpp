@@ -786,12 +786,21 @@ void WorldSession::HandleCharCreateCallback(PreparedQueryResult result, Characte
 void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)
 {
     uint64 guid = 0;
+    uint64 playerGuid;
     uint8 packetGuid, byte;
 
     sLog->outStaticDebug("WORLD: Received Player Delete Message");
+    WorldPacket  new_recv_data = recv_data;
+    /*recv_data >> playerGuid;
+    recv_data.clear();*/
+    new_recv_data >> packetGuid;
+    new_recv_data >> byte;
 
-    recv_data >> packetGuid;
-    recv_data >> byte;
+    uint32 realguids[1000]; // Max 1000 characters for an account
+    uint32 guids[1000]; // Max 1000 characters for an account
+    int LastCharacter = 0;
+    uint32 Pair = 0;
+    uint32 PairNumber = 0;
 
     for (int i = 0; i < 2; ++i)
     {
@@ -804,10 +813,7 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)
         if(number % 2 == 0)
         {
             if (i == 0)
-            {
-                if (packetGuid > 0)
-                    ++packetGuid;
-            }
+                ++packetGuid;
             else
             {
                 if (byte != 0)
@@ -817,16 +823,52 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)
         else
         {
             if (i == 0)
-            {
-                if (packetGuid < 255)
-                    --packetGuid;
-            }
+                --packetGuid;
             else
                 --byte;
         }
+
+        if (i == 0)
+        {
+            if (byte == 0 && (packetGuid > 0 && packetGuid < 512))
+            {
+                QueryResult charresult = CharacterDatabase.PQuery("SELECT guid, name FROM characters WHERE account='%u'", GetAccountIdForCharDeletion());
+                if (!charresult)
+                    return;
+
+                do
+                {
+                    Field *fields = charresult->Fetch();
+                    realguids[LastCharacter] = fields[0].GetUInt32();
+                    guids[LastCharacter] = realguids[LastCharacter];
+                    if (guids[LastCharacter] > 255 && guids[LastCharacter] < 512)
+                        guids[LastCharacter] = guids[LastCharacter]-256;
+                    ++LastCharacter;
+                }
+                while (charresult->NextRow());
+
+                for (int i = 0; i < LastCharacter+1; ++i)
+                    if (guids[i] == packetGuid)
+                    {
+                        PairNumber = i;
+                        ++Pair;
+                    }
+            }
+        }
     }
 
-    guid = (byte*256)+packetGuid;
+    if (Pair == 1)
+        guid = realguids[PairNumber];
+    else
+    {
+        if (Pair == 0)
+            guid = (byte*256)+packetGuid;
+        else
+        {
+            sLog->outError("Can't delete anything, sorry!");
+            return;
+        }
+    }
 
     // can't delete loaded character
     if (sObjectMgr->GetPlayer(guid))
